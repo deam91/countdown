@@ -14,14 +14,19 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
-  static const List<String> _exampleQueries = [
-    'Top 10 ramen in Tokyo',
-    'Best entrepreneurship books',
-    'Most underrated horror films',
-    'Greatest tennis players of all time',
-    'Top sci-fi novels of the 2020s',
-    'Best beaches in Portugal',
+  /// (`label`, `query`) pairs. Chip face shows the short label; tapping
+  /// it submits the full query. The rotating hint cycles through queries.
+  static const List<({String label, String query})> _examples = [
+    (label: 'Tokyo ramen', query: 'Top 10 ramen in Tokyo'),
+    (label: 'Startup books', query: 'Best entrepreneurship books'),
+    (label: 'Horror films', query: 'Most underrated horror films'),
+    (label: 'Tennis GOATs', query: 'Greatest tennis players of all time'),
+    (label: 'Sci-fi novels', query: 'Top sci-fi novels of the 2020s'),
+    (label: 'Portugal beaches', query: 'Best beaches in Portugal'),
   ];
+
+  static List<String> get _hintQueries =>
+      _examples.map((e) => e.query).toList();
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -80,7 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               const SizedBox(height: Spacing.sp6),
               _ExampleChips(
-                queries: SearchScreen._exampleQueries,
+                examples: SearchScreen._examples,
                 onTap: _onChipTapped,
               ),
               const Spacer(),
@@ -133,8 +138,8 @@ class _QueryInput extends StatelessWidget {
                   valueListenable: controller,
                   builder: (_, value, _) {
                     if (value.text.isNotEmpty) return const SizedBox.shrink();
-                    return const IgnorePointer(
-                      child: _RotatingHint(hints: SearchScreen._exampleQueries),
+                    return IgnorePointer(
+                      child: _RotatingHint(hints: SearchScreen._hintQueries),
                     );
                   },
                 ),
@@ -249,21 +254,37 @@ class _RotatingHintState extends State<_RotatingHint> {
   }
 }
 
-/// Two-row grid of tappable example queries.
+/// Two-row grid of tappable example queries (3 per row).
+///
+/// Computes per-chip width from the available column width so the
+/// chips lay out as an even 3×2 grid regardless of label length.
 class _ExampleChips extends StatelessWidget {
-  const _ExampleChips({required this.queries, required this.onTap});
+  const _ExampleChips({required this.examples, required this.onTap});
 
-  final List<String> queries;
+  final List<({String label, String query})> examples;
   final ValueChanged<String> onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: Spacing.sp2,
-      runSpacing: Spacing.sp2,
-      children: [
-        for (final q in queries) _Chip(label: q, onTap: () => onTap(q)),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = Spacing.sp2;
+        final chipWidth = (constraints.maxWidth - gap * 2) / 3;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final e in examples)
+              SizedBox(
+                width: chipWidth,
+                child: _Chip(
+                  label: e.label,
+                  onTap: () => onTap(e.query),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
