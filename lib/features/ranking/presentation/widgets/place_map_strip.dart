@@ -5,8 +5,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Read-only 40pt-tall OSM mini-map for a `PlaceItem`'s row in the
-/// ranking screen. Single brand-purple pin centered on (lat, lng).
+/// Read-only OSM mini-map for a `PlaceItem`'s row in the ranking
+/// screen. Single brand-purple pin centered on (lat, lng), 48pt tall.
 /// All interaction disabled — taps fall through to the card.
 class PlaceMapStrip extends StatelessWidget {
   const PlaceMapStrip({
@@ -18,7 +18,10 @@ class PlaceMapStrip extends StatelessWidget {
   final double lat;
   final double lng;
 
-  static const double _height = 40;
+  /// Minimum (and in practice, exact) height the strip occupies inside
+  /// the card. Cards are content-driven; this anchors the map's visual
+  /// presence so it never collapses.
+  static const double _minHeight = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +29,7 @@ class PlaceMapStrip extends StatelessWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(Radii.image)),
       child: SizedBox(
-        height: _height,
+        height: _minHeight,
         child: IgnorePointer(
           child: FlutterMap(
             options: MapOptions(

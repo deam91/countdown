@@ -18,16 +18,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class RankCard extends StatelessWidget {
   const RankCard({required this.item, super.key});
 
-  /// Base card height used by `CardSkeleton` and non-place items.
-  static const double height = 160;
-
-  /// Place cards need extra room for the 40pt map strip below the
-  /// address row. Skeleton stays at the base height — a small ~20pt
-  /// jump on arrival is acceptable for a place-only minority of cards.
-  static const double placeHeight = 180;
-
-  static double heightFor(RankItem item) =>
-      item is PlaceItem ? placeHeight : height;
+  /// Skeleton-only baseline — real cards are content-driven (no fixed
+  /// height). The skeleton uses this so the layout has a sensible
+  /// initial size while items load.
+  static const double skeletonHeight = 160;
 
   final RankItem item;
 
@@ -67,7 +61,6 @@ class RankCard extends StatelessWidget {
             ),
           ),
           child: Container(
-            height: RankCard.heightFor(item),
             decoration: BoxDecoration(
               borderRadius: Radii.cardRadius,
               border: isTopThree
@@ -94,40 +87,46 @@ class _CardInner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Tier gradient ring (top-3 only) — drawn as a 2px outline.
-        if (tier != Tier.neutral)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: Radii.cardRadius,
-                  border: Border.fromBorderSide(
-                    BorderSide(color: _ringColor(tier), width: 2),
+    // IntrinsicHeight makes the Row's children share the height of the
+    // tallest one (the body Column), so the LeftStrip's gradient bar
+    // stretches to match instead of collapsing to its intrinsic numeral
+    // height. Costs a layout pass, fine for 10 cards.
+    return IntrinsicHeight(
+      child: Stack(
+        children: [
+          // Tier gradient ring (top-3 only) — drawn as a 2px outline.
+          if (tier != Tier.neutral)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: Radii.cardRadius,
+                    border: Border.fromBorderSide(
+                      BorderSide(color: _ringColor(tier), width: 2),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        Row(
-          children: [
-            _LeftStrip(rank: rank, tier: tier),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Spacing.sp4,
-                  vertical: Spacing.sp3,
+          Row(
+            children: [
+              _LeftStrip(rank: rank, tier: tier),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.sp4,
+                    vertical: Spacing.sp3,
+                  ),
+                  child: _CardBody(item: item, rank: rank, tier: tier),
                 ),
-                child: _CardBody(item: item, rank: rank, tier: tier),
               ),
-            ),
-            const SizedBox(width: Spacing.sp4),
-            _KindImage(item: item),
-            const SizedBox(width: Spacing.sp4),
-          ],
-        ),
-      ],
+              const SizedBox(width: Spacing.sp4),
+              _KindImage(item: item),
+              const SizedBox(width: Spacing.sp4),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -191,11 +190,11 @@ class _CardBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (tier != Tier.neutral) ...[
           TierBadge(rank: rank),
-          const SizedBox(height: Spacing.sp1),
+          const SizedBox(height: Spacing.sp2),
         ],
         Text(
           _title(item),
@@ -203,15 +202,20 @@ class _CardBody extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        const SizedBox(height: Spacing.sp1),
         _SubLine(item: item),
-        if (item case PlaceItem(:final lat, :final lng))
+        if (item case PlaceItem(:final lat, :final lng)) ...[
+          const SizedBox(height: Spacing.sp2),
           PlaceMapStrip(lat: lat, lng: lng),
+        ],
+        const SizedBox(height: Spacing.sp2),
         Text(
           _whyItRanks(item),
           style: AppTypography.bodyM,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        const SizedBox(height: Spacing.sp2),
         ScoreBar(score: _score(item), tier: tier),
       ],
     );

@@ -15,7 +15,7 @@ class CardSkeleton extends StatelessWidget {
     final block = ColorTokens.surfaceOutline.withValues(alpha: 0.35);
 
     return Container(
-      height: RankCard.height,
+      height: RankCard.skeletonHeight,
       decoration: BoxDecoration(
         color: ColorTokens.surfaceElevated,
         borderRadius: Radii.cardRadius,
