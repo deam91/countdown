@@ -4,7 +4,9 @@ import 'package:countdown/core/theme/radii.dart';
 import 'package:countdown/core/theme/spacing.dart';
 import 'package:countdown/core/theme/tier_styles.dart';
 import 'package:countdown/core/theme/typography.dart';
+import 'package:countdown/features/detail/detail_screen.dart';
 import 'package:countdown/features/ranking/domain/rank_item.dart';
+import 'package:countdown/features/ranking/presentation/widgets/place_map_strip.dart';
 import 'package:countdown/features/ranking/presentation/widgets/rank_numeral.dart';
 import 'package:countdown/features/ranking/presentation/widgets/score_bar.dart';
 import 'package:countdown/features/ranking/presentation/widgets/tier_badge.dart';
@@ -15,6 +17,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// Top-3 ranks get a tier gradient ring and outer glow.
 class RankCard extends StatelessWidget {
   const RankCard({required this.item, super.key});
+
+  /// Shared by [RankCard] and `CardSkeleton` so the layout doesn't jump
+  /// as items stream in to replace skeleton slots.
+  static const double height = 160;
 
   final RankItem item;
 
@@ -43,26 +49,29 @@ class RankCard extends StatelessWidget {
               ]
             : null,
       ),
-      child: Container(
-        height: 140,
-        decoration: BoxDecoration(
-          color: ColorTokens.surfaceElevated,
+      child: Material(
+        color: ColorTokens.surfaceElevated,
+        borderRadius: Radii.cardRadius,
+        child: InkWell(
           borderRadius: Radii.cardRadius,
-          border: isTopThree
-              ? null
-              : Border.all(color: ColorTokens.surfaceOutline50),
-          gradient: isTopThree
-              ? const LinearGradient(
-                  colors: [
-                    ColorTokens.surfaceElevated,
-                    ColorTokens.surfaceElevated,
-                  ],
-                )
-              : null,
-        ),
-        child: ClipRRect(
-          borderRadius: Radii.cardRadius,
-          child: _CardInner(item: item, rank: _rank, tier: tier),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => DetailScreen(item: item),
+            ),
+          ),
+          child: Container(
+            height: RankCard.height,
+            decoration: BoxDecoration(
+              borderRadius: Radii.cardRadius,
+              border: isTopThree
+                  ? null
+                  : Border.all(color: ColorTokens.surfaceOutline50),
+            ),
+            child: ClipRRect(
+              borderRadius: Radii.cardRadius,
+              child: _CardInner(item: item, rank: _rank, tier: tier),
+            ),
+          ),
         ),
       ),
     );
@@ -188,6 +197,8 @@ class _CardBody extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         _SubLine(item: item),
+        if (item case PlaceItem(:final lat, :final lng))
+          PlaceMapStrip(lat: lat, lng: lng),
         Text(
           _whyItRanks(item),
           style: AppTypography.bodyM,
@@ -272,6 +283,13 @@ class _KindImage extends StatelessWidget {
 
   static const double _size = 96;
 
+  int get _rank => item.when(
+        place: (rank, _, _, _, _, _, _, _) => rank,
+        book: (rank, _, _, _, _, _, _) => rank,
+        person: (rank, _, _, _, _, _) => rank,
+        generic: (rank, _, _, _, _) => rank,
+      );
+
   @override
   Widget build(BuildContext context) {
     final (width, height, radius) = switch (item) {
@@ -289,27 +307,30 @@ class _KindImage extends StatelessWidget {
 
     final fallback = _PlaceholderFill(kind: item);
 
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: ColorTokens.surfaceOutline50),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: url == null || url.isEmpty
-            ? fallback
-            : CachedNetworkImage(
-                imageUrl: url,
-                fit: BoxFit.cover,
-                fadeInDuration: const Duration(milliseconds: 200),
-                placeholder: (_, _) => fallback,
-                errorWidget: (_, failedUrl, error) {
-                  debugPrint('[img] failed: $failedUrl ($error)');
-                  return fallback;
-                },
-              ),
+    return Hero(
+      tag: 'rank-image-$_rank',
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          border: Border.all(color: ColorTokens.surfaceOutline50),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: url == null || url.isEmpty
+              ? fallback
+              : CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.cover,
+                  fadeInDuration: const Duration(milliseconds: 200),
+                  placeholder: (_, _) => fallback,
+                  errorWidget: (_, failedUrl, error) {
+                    debugPrint('[img] failed: $failedUrl ($error)');
+                    return fallback;
+                  },
+                ),
+        ),
       ),
     );
   }

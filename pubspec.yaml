@@ -42,9 +42,10 @@ dependencies:
   confetti: ^0.8.0
   visibility_detector: ^0.4.0+2
 
-  # Share
+  # Share + external links
   screenshot: ^3.0.0
   share_plus: ^13.1.0
+  url_launcher: ^6.3.2
 
   # Voice (stretch)
   speech_to_text: ^7.4.0

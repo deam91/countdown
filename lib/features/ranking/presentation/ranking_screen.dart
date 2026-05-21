@@ -10,6 +10,7 @@ import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:countdown/features/ranking/domain/ranking_state.dart';
 import 'package:countdown/features/ranking/presentation/ranking_controller.dart';
 import 'package:countdown/features/ranking/presentation/widgets/card_skeleton.dart';
+import 'package:countdown/features/ranking/presentation/widgets/error_panel.dart';
 import 'package:countdown/features/ranking/presentation/widgets/rank_card.dart';
 import 'package:countdown/features/ranking/presentation/widgets/rank_one_reveal.dart';
 import 'package:countdown/features/ranking/presentation/widgets/reveal_animator.dart';
@@ -110,7 +111,14 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
     // Error replaces the list entirely.
     if (state is RankingError) {
-      children.add(_ErrorPanel(error: state.error.message));
+      children.add(
+        ErrorPanel(
+          error: state.error,
+          onRetry: () => ref
+              .read(rankingControllerProvider.notifier)
+              .ask(widget.query, n: widget.n),
+        ),
+      );
       return children;
     }
 
@@ -339,34 +347,6 @@ class _PillButton extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorPanel extends StatelessWidget {
-  const _ErrorPanel({required this.error});
-  final String error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(Spacing.sp4),
-      decoration: BoxDecoration(
-        color: ColorTokens.surfaceElevated,
-        borderRadius: Radii.cardRadius,
-        border: Border.all(color: ColorTokens.surfaceOutline50),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Something went wrong',
-            style: AppTypography.titleL.copyWith(color: ColorTokens.stateError),
-          ),
-          const SizedBox(height: Spacing.sp2),
-          Text(error, style: AppTypography.bodyM),
-        ],
       ),
     );
   }

@@ -221,6 +221,7 @@ Scale (semantic):
 | Connectivity | `connectivity_plus` | Offline banner |
 | Logs | `talker_flutter` | Shake-to-open overlay |
 | Share | `screenshot` + `share_plus` | Capture widget tree + share sheet |
+| External links | `url_launcher` ^6.3 | Detail screen's Maps / Google / Wikipedia chips |
 | Fonts | `google_fonts` (Fraunces + Inter) | Editorial + UI pairing |
 | Icons | **`lucide_icons_flutter`** | Active fork; original `lucide_icons` last shipped Jun 2023 |
 | Secrets | `--dart-define=OPENAI_API_KEY=...` | Brief requires a constant + comment marker; this maps 1:1 |
@@ -275,31 +276,26 @@ lib/
 │   │   └── presentation/
 │   │       ├── ranking_controller.dart     # AsyncNotifier
 │   │       ├── ranking_screen.dart
+│   │       ├── ranking_controller.dart     # Notifier<RankingState> + providers
 │   │       └── widgets/
-│   │           ├── reveal_card.dart        # dispatches per kind
-│   │           ├── place_card.dart
-│   │           ├── book_card.dart
-│   │           ├── person_card.dart
-│   │           ├── generic_card.dart
-│   │           ├── score_bar.dart
-│   │           ├── tier_badge.dart
-│   │           ├── rank_numeral.dart       # Fraunces display
-│   │           └── confetti_burst.dart
+│   │           ├── rank_card.dart          # one card, dispatches per kind inline
+│   │           ├── rank_one_reveal.dart    # visibility-triggered reveal + confetti for #1
+│   │           ├── reveal_animator.dart    # opacity/scale/blur + haptic for ranks 2-N
+│   │           ├── rank_numeral.dart       # Fraunces display, tier shader mask
+│   │           ├── tier_badge.dart         # GOLD/SILVER/BRONZE pill
+│   │           ├── score_bar.dart          # 4px animated fill
+│   │           ├── card_skeleton.dart      # shimmer placeholder
+│   │           ├── place_map_strip.dart    # 40pt OSM mini-map for PlaceItem
+│   │           ├── error_panel.dart        # illustrated panel per AppError variant
+│   │           ├── status_sub_header.dart  # "Asking GPT…" / "Revealing 4 of 10…"
+│   │           └── confetti_burst.dart     # two upward gold emitters
 │   ├── search/
-│   │   ├── search_screen.dart
-│   │   ├── widgets/
-│   │   │   ├── query_input.dart
-│   │   │   ├── rotating_hint.dart
-│   │   │   └── example_chips.dart
-│   │   └── voice_controller.dart
+│   │   └── search_screen.dart              # app home: input + chips + rotating hint
 │   ├── detail/
-│   │   ├── detail_screen.dart
-│   │   └── widgets/
-│   ├── share/
-│   │   ├── share_screen.dart
-│   │   └── share_service.dart
-└── routing/
-    └── router.dart                         # go_router
+│   │   └── detail_screen.dart              # hero header + full map + external links
+│   └── share/
+│       └── share_service.dart              # screenshot + share_plus iOS sheet
+└── routing/                                # (reserved if scope grows)
 ```
 
 ---
@@ -508,7 +504,9 @@ What's actually scaffolded as of the last commit. Update this section as work pr
   - Wired through `rankingControllerProvider`; temporary `_DevHome` entry point in `app.dart`.
 - ✅ **Share button** (MVP) — both the app-bar share icon and the Done-bar Share pill capture the cards area via `ScreenshotController`, save to a temp PNG, and hand to the iOS share sheet via `share_plus`. The dedicated 9:16 composition per `IDEA.md §3.5` is a future upgrade.
 - ✅ **Search screen** (`lib/features/search/search_screen.dart`) — the app's home. Headline + glass input with rotating placeholder (cycles 6 example queries every 3s with fade-slide animation) + tappable example chips (auto-submit on tap) + footer credit. Submits via keyboard `search` action or chip tap, pushes `RankingScreen` via `MaterialPageRoute`. Mic affordance present but disabled (voice-input is stretch).
-- ⬜ **Detail / Error screens**.
+- ✅ **PlaceCard map strip** (`lib/features/ranking/presentation/widgets/place_map_strip.dart`) — 40pt OSM tile below the address row, single brand.primary pin, all interaction disabled (taps fall through to the card). All cards bumped to 160pt so the layout doesn't jump between place and non-place rows.
+- ✅ **Detail screen** (`lib/features/detail/detail_screen.dart`) — Hero transition from the card image to a 320pt header. Below: tier badge, title, gradient-filled score-out-of-10, full "why it ranks" copy, full 200pt interactive map for places, and external-link chips ("Open in Maps" / "Search on Google" / "Wikipedia") wired via `url_launcher`.
+- ✅ **Illustrated error states** (`error_panel.dart`) — one per `AppError` variant. Brand.secondary halo behind a kind-specific Lucide icon (satellite-dish / flame / key-round / file-question / shield-x / timer-off / triangle-alert), distinct title + body, and a Retry pill where applicable. Replaces the previous generic panel.
 - ⬜ **Widget + golden tests** (one per card kind, gold top-3 golden).
 - ⬜ **README + demo recording**.
 

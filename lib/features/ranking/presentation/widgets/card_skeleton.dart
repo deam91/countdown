@@ -1,6 +1,7 @@
 import 'package:countdown/core/theme/color_tokens.dart';
 import 'package:countdown/core/theme/radii.dart';
 import 'package:countdown/core/theme/spacing.dart';
+import 'package:countdown/features/ranking/presentation/widgets/rank_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -14,7 +15,7 @@ class CardSkeleton extends StatelessWidget {
     final block = ColorTokens.surfaceOutline.withValues(alpha: 0.35);
 
     return Container(
-      height: 140,
+      height: RankCard.height,
       decoration: BoxDecoration(
         color: ColorTokens.surfaceElevated,
         borderRadius: Radii.cardRadius,

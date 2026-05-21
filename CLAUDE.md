@@ -26,6 +26,7 @@ A Flutter iOS app that turns "give me the top N…" questions into a cinematic s
 - **Image cache:** `cached_network_image`.
 - **Logs:** `talker_flutter` (shake-to-open).
 - **Share:** `screenshot` + `share_plus`.
+- **External links** (Detail screen): `url_launcher` ^6.3 — Maps / Google / Wikipedia chips.
 - **Confetti:** `confetti` (the #1 reveal burst).
 - **Tests:** `flutter_test`, `mocktail`, **`alchemist`** (goldens — replaces stale `golden_toolkit`).
 - **Lints:** **`very_good_analysis`**.
