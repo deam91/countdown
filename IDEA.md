@@ -507,7 +507,8 @@ What's actually scaffolded as of the last commit. Update this section as work pr
   - `_DoneBottomBar` (glass-frosted) with `Share` and `Ask another` pills.
   - Wired through `rankingControllerProvider`; temporary `_DevHome` entry point in `app.dart`.
 - ✅ **Share button** (MVP) — both the app-bar share icon and the Done-bar Share pill capture the cards area via `ScreenshotController`, save to a temp PNG, and hand to the iOS share sheet via `share_plus`. The dedicated 9:16 composition per `IDEA.md §3.5` is a future upgrade.
-- ⬜ **Search screen / Detail / Error screens**.
+- ✅ **Search screen** (`lib/features/search/search_screen.dart`) — the app's home. Headline + glass input with rotating placeholder (cycles 6 example queries every 3s with fade-slide animation) + tappable example chips (auto-submit on tap) + footer credit. Submits via keyboard `search` action or chip tap, pushes `RankingScreen` via `MaterialPageRoute`. Mic affordance present but disabled (voice-input is stretch).
+- ⬜ **Detail / Error screens**.
 - ⬜ **Widget + golden tests** (one per card kind, gold top-3 golden).
 - ⬜ **README + demo recording**.
 
