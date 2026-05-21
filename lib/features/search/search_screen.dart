@@ -218,7 +218,7 @@ class _RotatingHintState extends State<_RotatingHint> {
         );
       },
       child: Text(
-        widget.hints[_index],
+        widget.hints[_index].trim(),
         key: ValueKey(_index),
         style: AppTypography.bodyL.copyWith(color: ColorTokens.textTertiary),
         maxLines: 1,
@@ -286,10 +286,13 @@ class _Footer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Spacing.sp2),
-      child: Text(
-        'Powered by GPT-4o-mini · Images by Wikipedia',
-        style: AppTypography.caption.copyWith(color: ColorTokens.textTertiary),
-        textAlign: TextAlign.center,
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(
+          'Powered by GPT-4o-mini · Images by Wikipedia',
+          style: AppTypography.caption.copyWith(color: ColorTokens.textTertiary),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
