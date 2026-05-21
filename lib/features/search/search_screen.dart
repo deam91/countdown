@@ -154,6 +154,27 @@ class _QueryInput extends StatelessWidget {
               ],
             ),
           ),
+          // Clear (×) only appears when there's text. Refocuses the
+          // field after clearing so the user can keep typing.
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (_, value, _) {
+              if (value.text.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(
+                  LucideIcons.x,
+                  size: 18,
+                  color: ColorTokens.textSecondary,
+                ),
+                tooltip: 'Clear',
+                onPressed: () {
+                  controller.clear();
+                  focusNode.requestFocus();
+                },
+              );
+            },
+          ),
           // Mic affordance — wired up when speech_to_text lands (stretch).
           const IconButton(
             onPressed: null,

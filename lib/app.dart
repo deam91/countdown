@@ -1,5 +1,5 @@
 import 'package:countdown/core/theme/app_theme.dart';
-import 'package:countdown/features/search/search_screen.dart';
+import 'package:countdown/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +12,7 @@ class CountdownApp extends ConsumerWidget {
       title: 'Countdown',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
-      home: const SearchScreen(),
+      home: const SplashScreen(),
     );
   }
 }

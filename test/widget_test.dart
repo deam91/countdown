@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('CountdownApp boots into the Search screen', (tester) async {
+  testWidgets('CountdownApp boots into the Splash screen', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: CountdownApp()));
-    expect(find.text('What do you want ranked?'), findsOneWidget);
+    expect(find.text('Countdown'), findsOneWidget);
   });
 }
