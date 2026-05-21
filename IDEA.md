@@ -173,7 +173,7 @@ Scale (semantic):
 ![Detail mockup](./design/screenshots/05-detail.png)
 
 - Hero transition: the card's image scales up to a 320dp hero header at the top.
-- Below: rank numeral + tier badge, title (`title.l`), full "why it ranks" copy (no truncation), full map (for `place`), external link chips ("Open in Maps", "Search on Google", "Wikipedia" — when applicable).
+- Below: rank numeral + tier badge, title (`title.l`), long-form `details` paragraph (the model returns a separate field from the card's one-sentence `whyItRanks`), full map (for `place`), external link chips ("Open in Maps", "Search on Google", "Wikipedia" — when applicable).
 - Bottom CTA: "Re-roll this rank" (stretch feature, animates a new item in its place).
 
 ### 3.5 Share screen
@@ -309,6 +309,7 @@ sealed class RankItem with _$RankItem {
     required int rank,
     required String title,
     required String whyItRanks,
+    required String details,
     required double score,                  // 0-10
     String? imageUrl,
     required String address,
@@ -320,6 +321,7 @@ sealed class RankItem with _$RankItem {
     required int rank,
     required String title,
     required String whyItRanks,
+    required String details,
     required double score,
     String? imageUrl,
     required String author,
@@ -330,6 +332,7 @@ sealed class RankItem with _$RankItem {
     required int rank,
     required String title,
     required String whyItRanks,
+    required String details,
     required double score,
     String? imageUrl,
     required String tagline,
@@ -339,6 +342,7 @@ sealed class RankItem with _$RankItem {
     required int rank,
     required String title,
     required String whyItRanks,
+    required String details,
     required double score,
     String? imageUrl,
   }) = GenericItem;
@@ -505,7 +509,7 @@ What's actually scaffolded as of the last commit. Update this section as work pr
 - ✅ **Share button** (MVP) — both the app-bar share icon and the Done-bar Share pill capture the cards area via `ScreenshotController`, save to a temp PNG, and hand to the iOS share sheet via `share_plus`. The dedicated 9:16 composition per `IDEA.md §3.5` is a future upgrade.
 - ✅ **Search screen** (`lib/features/search/search_screen.dart`) — the app's home. Headline + glass input with rotating placeholder (cycles 6 example queries every 3s with fade-slide animation) + tappable example chips (auto-submit on tap) + footer credit. Submits via keyboard `search` action or chip tap, pushes `RankingScreen` via `MaterialPageRoute`. Mic affordance present but disabled (voice-input is stretch).
 - ✅ **PlaceCard map strip** (`lib/features/ranking/presentation/widgets/place_map_strip.dart`) — 40pt OSM tile below the address row, single brand.primary pin, all interaction disabled (taps fall through to the card). All cards bumped to 160pt so the layout doesn't jump between place and non-place rows.
-- ✅ **Detail screen** (`lib/features/detail/detail_screen.dart`) — Hero transition from the card image to a 320pt header. Below: tier badge, title, gradient-filled score-out-of-10, full "why it ranks" copy, full 200pt interactive map for places, and external-link chips ("Open in Maps" / "Search on Google" / "Wikipedia") wired via `url_launcher`.
+- ✅ **Detail screen** (`lib/features/detail/detail_screen.dart`) — Hero transition from the card image to a 320pt header (skipped cleanly when no image — replaced by a giant tier-gradient Fraunces numeral as deliberate poster art). Below: tier badge, title, gradient-filled score-out-of-10, long-form `details` paragraph (separate field from the card's `whyItRanks`), full 200pt interactive map for places, and external-link chips ("Open in Maps" / "Search on Google" / "Wikipedia") wired via `url_launcher`.
 - ✅ **Illustrated error states** (`error_panel.dart`) — one per `AppError` variant. Brand.secondary halo behind a kind-specific Lucide icon (satellite-dish / flame / key-round / file-question / shield-x / timer-off / triangle-alert), distinct title + body, and a Retry pill where applicable. Replaces the previous generic panel.
 - ⬜ **Widget + golden tests** (one per card kind, gold top-3 golden).
 - ⬜ **README + demo recording**.

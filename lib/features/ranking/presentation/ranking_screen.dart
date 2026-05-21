@@ -160,10 +160,10 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   }
 
   int _rankOf(RankItem i) => i.when(
-        place: (rank, _, _, _, _, _, _, _) => rank,
-        book: (rank, _, _, _, _, _, _) => rank,
-        person: (rank, _, _, _, _, _) => rank,
-        generic: (rank, _, _, _, _) => rank,
+        place: (rank, _, _, _, _, _, _, _, _) => rank,
+        book: (rank, _, _, _, _, _, _, _) => rank,
+        person: (rank, _, _, _, _, _, _) => rank,
+        generic: (rank, _, _, _, _, _) => rank,
       );
 
   bool _hasRankOne(List<RankItem> items) => items.any((i) => _rankOf(i) == 1);

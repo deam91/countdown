@@ -20,9 +20,9 @@ class RankingCache {
     return RankingCache._(box);
   }
 
-  // v4 = enriched items now carry Wikipedia-sourced coordinates for
-  // place items, not the model's hallucinated lat/lng.
-  static const String _boxName = 'ranking_cache_v4';
+  // v5 = items now carry a long-form `details` string distinct from
+  // `whyItRanks`; old entries would fail deserialization.
+  static const String _boxName = 'ranking_cache_v5';
   static const int _maxEntries = 50;
 
   final Box<String> _box;

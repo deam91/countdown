@@ -25,12 +25,14 @@ void main() {
       rank: 2,
       title: 'Second',
       whyItRanks: 'Solid runner-up',
+      details: 'A longer description of second place.',
       score: 8,
     ),
     const RankItem.generic(
       rank: 1,
       title: 'First',
       whyItRanks: 'Clear winner',
+      details: 'A longer description of first place.',
       score: 9.5,
     ),
   ];

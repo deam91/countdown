@@ -24,33 +24,33 @@ class DetailScreen extends StatelessWidget {
 
   final RankItem item;
 
-  int get _rank => item.when(
-        place: (rank, _, _, _, _, _, _, _) => rank,
-        book: (rank, _, _, _, _, _, _) => rank,
-        person: (rank, _, _, _, _, _) => rank,
-        generic: (rank, _, _, _, _) => rank,
-      );
+  int get _rank => switch (item) {
+        PlaceItem(:final rank) => rank,
+        BookItem(:final rank) => rank,
+        PersonItem(:final rank) => rank,
+        GenericItem(:final rank) => rank,
+      };
 
-  String get _title => item.when(
-        place: (_, title, _, _, _, _, _, _) => title,
-        book: (_, title, _, _, _, _, _) => title,
-        person: (_, title, _, _, _, _) => title,
-        generic: (_, title, _, _, _) => title,
-      );
+  String get _title => switch (item) {
+        PlaceItem(:final title) => title,
+        BookItem(:final title) => title,
+        PersonItem(:final title) => title,
+        GenericItem(:final title) => title,
+      };
 
-  String get _whyItRanks => item.when(
-        place: (_, _, why, _, _, _, _, _) => why,
-        book: (_, _, why, _, _, _, _) => why,
-        person: (_, _, why, _, _, _) => why,
-        generic: (_, _, why, _, _) => why,
-      );
+  String get _details => switch (item) {
+        PlaceItem(:final details) => details,
+        BookItem(:final details) => details,
+        PersonItem(:final details) => details,
+        GenericItem(:final details) => details,
+      };
 
-  double get _score => item.when(
-        place: (_, _, _, score, _, _, _, _) => score,
-        book: (_, _, _, score, _, _, _) => score,
-        person: (_, _, _, score, _, _) => score,
-        generic: (_, _, _, score, _) => score,
-      );
+  double get _score => switch (item) {
+        PlaceItem(:final score) => score,
+        BookItem(:final score) => score,
+        PersonItem(:final score) => score,
+        GenericItem(:final score) => score,
+      };
 
   String? get _imageUrl => switch (item) {
         PlaceItem(:final imageUrl) => imageUrl,
@@ -85,7 +85,7 @@ class DetailScreen extends StatelessWidget {
                 const SizedBox(height: Spacing.sp2),
                 _ScoreRow(score: _score, tier: tier),
                 const SizedBox(height: Spacing.sp5),
-                Text(_whyItRanks, style: AppTypography.bodyL),
+                Text(_details, style: AppTypography.bodyL),
                 const SizedBox(height: Spacing.sp6),
                 if (item case PlaceItem(:final address, :final lat, :final lng)) ...[
                   Text('Location', style: AppTypography.titleM),

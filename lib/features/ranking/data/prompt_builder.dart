@@ -17,7 +17,8 @@ For each item, choose the most appropriate `kind`:
 Rules:
 - `rank` is 1..$n (1 = best).
 - `score` is 0..10, two decimals.
-- `whyItRanks` is ONE sentence, max 100 characters, no period at the end.
+- `whyItRanks` is ONE sentence, max 100 characters, no period at the end — shown on the ranking list under the title.
+- `details` is the long-form description shown on the dedicated detail screen. 2-4 sentences (200-450 characters total) covering what makes this item notable: context, distinguishing characteristics, and (if relevant) one specific concrete fact. Distinct from `whyItRanks` — do not just paraphrase. Plain prose, no markdown.
 - `imageUrl`: ALWAYS null. The client fetches images separately from Wikipedia using the `title`. Do NOT attempt to provide an image URL — you have proven unreliable at this and we no longer ask.
 - Pick titles that are unambiguous and likely to resolve to a Wikipedia page (real proper nouns rather than vague descriptions). The client searches Wikipedia by `title` to find each item's image.
 - Return ONLY the JSON object, no preamble or commentary.
@@ -48,6 +49,7 @@ Rules:
       'rank': {'type': 'integer'},
       'title': {'type': 'string'},
       'whyItRanks': {'type': 'string'},
+      'details': {'type': 'string'},
       'score': {'type': 'number'},
       'imageUrl': {
         'type': ['string', 'null'],
@@ -76,6 +78,7 @@ Rules:
       'rank',
       'title',
       'whyItRanks',
+      'details',
       'score',
       'imageUrl',
       'address',

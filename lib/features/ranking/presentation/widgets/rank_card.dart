@@ -26,10 +26,10 @@ class RankCard extends StatelessWidget {
   final RankItem item;
 
   int get _rank => item.when(
-        place: (rank, _, _, _, _, _, _, _) => rank,
-        book: (rank, _, _, _, _, _, _) => rank,
-        person: (rank, _, _, _, _, _) => rank,
-        generic: (rank, _, _, _, _) => rank,
+        place: (rank, _, _, _, _, _, _, _, _) => rank,
+        book: (rank, _, _, _, _, _, _, _) => rank,
+        person: (rank, _, _, _, _, _, _) => rank,
+        generic: (rank, _, _, _, _, _) => rank,
       );
 
   @override
@@ -212,8 +212,7 @@ class _CardBody extends StatelessWidget {
         Text(
           _whyItRanks(item),
           style: AppTypography.bodyM,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          softWrap: true,
         ),
         const SizedBox(height: Spacing.sp2),
         ScoreBar(score: _score(item), tier: tier),
@@ -222,24 +221,24 @@ class _CardBody extends StatelessWidget {
   }
 
   String _title(RankItem i) => i.when(
-        place: (_, title, _, _, _, _, _, _) => title,
-        book: (_, title, _, _, _, _, _) => title,
-        person: (_, title, _, _, _, _) => title,
-        generic: (_, title, _, _, _) => title,
+        place: (_, title, _, _, _, _, _, _, _) => title,
+        book: (_, title, _, _, _, _, _, _) => title,
+        person: (_, title, _, _, _, _, _) => title,
+        generic: (_, title, _, _, _, _) => title,
       );
 
   String _whyItRanks(RankItem i) => i.when(
-        place: (_, _, why, _, _, _, _, _) => why,
-        book: (_, _, why, _, _, _, _) => why,
-        person: (_, _, why, _, _, _) => why,
-        generic: (_, _, why, _, _) => why,
+        place: (_, _, why, _, _, _, _, _, _) => why,
+        book: (_, _, why, _, _, _, _, _) => why,
+        person: (_, _, why, _, _, _, _) => why,
+        generic: (_, _, why, _, _, _) => why,
       );
 
   double _score(RankItem i) => i.when(
-        place: (_, _, _, score, _, _, _, _) => score,
-        book: (_, _, _, score, _, _, _) => score,
-        person: (_, _, _, score, _, _) => score,
-        generic: (_, _, _, score, _) => score,
+        place: (_, _, _, _, score, _, _, _, _) => score,
+        book: (_, _, _, _, score, _, _, _) => score,
+        person: (_, _, _, _, score, _, _) => score,
+        generic: (_, _, _, _, score, _) => score,
       );
 }
 
@@ -295,10 +294,10 @@ class _KindImage extends StatelessWidget {
   static const double _size = 96;
 
   int get _rank => item.when(
-        place: (rank, _, _, _, _, _, _, _) => rank,
-        book: (rank, _, _, _, _, _, _) => rank,
-        person: (rank, _, _, _, _, _) => rank,
-        generic: (rank, _, _, _, _) => rank,
+        place: (rank, _, _, _, _, _, _, _, _) => rank,
+        book: (rank, _, _, _, _, _, _, _) => rank,
+        person: (rank, _, _, _, _, _, _) => rank,
+        generic: (rank, _, _, _, _, _) => rank,
       );
 
   @override
