@@ -11,8 +11,9 @@ import 'package:flutter/material.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
-  static const Duration _hold = Duration(milliseconds: 1000);
-  static const Duration _outFade = Duration(milliseconds: 380);
+  // 5s ≈ two full pulse loops of the dot before we navigate away.
+  static const Duration _hold = Duration(seconds: 5);
+  static const Duration _outFade = Duration(milliseconds: 420);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -84,7 +85,7 @@ class _PulsingDotState extends State<_PulsingDot>
 
   late final Animation<double> _scale = Tween<double>(
     begin: 1,
-    end: 1.15,
+    end: 1.5,
   ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutCubic));
 
   @override
@@ -114,11 +115,18 @@ class _Dot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 12,
-      height: 12,
-      decoration: const BoxDecoration(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
         color: ColorTokens.brandPrimary,
         shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: ColorTokens.brandPrimary.withValues(alpha: 0.45),
+            blurRadius: 12,
+            spreadRadius: 1,
+          ),
+        ],
       ),
     );
   }
