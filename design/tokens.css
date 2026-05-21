@@ -1,0 +1,306 @@
+/* ========================================================================
+   Countdown — Design Tokens
+   ======================================================================== */
+
+:root {
+  /* Brand */
+  --brand-primary:           #6750A4;
+  --brand-primary-container: #4F378B;
+  --brand-secondary:         #9A82DB;
+  --brand-tertiary:          #EFB8C8;
+  --brand-on-primary:        #FFFFFF;
+
+  /* Surfaces */
+  --surface-base:            #141218;
+  --surface-elevated:        #1D1B20;
+  --surface-glass:           rgba(38, 35, 42, 0.70);
+  --surface-outline:         #49454F;
+  --surface-outline-50:      rgba(73, 69, 79, 0.50);
+
+  /* Text */
+  --text-primary:            #E6E0E9;
+  --text-secondary:          #CAC4D0;
+  --text-tertiary:           #938F99;
+
+  /* State */
+  --state-error:             #F2B8B5;
+
+  /* Tiers */
+  --gold-1:                  #F5C46A;
+  --gold-2:                  #C9892A;
+  --gold-glow:               rgba(245, 196, 106, 0.55);
+
+  --silver-1:                #E5E4EA;
+  --silver-2:                #A6A4B0;
+  --silver-glow:             rgba(229, 228, 234, 0.45);
+
+  --bronze-1:                #D89B7B;
+  --bronze-2:                #9B5A3B;
+  --bronze-glow:             rgba(216, 155, 123, 0.50);
+
+  /* Spacing */
+  --sp-1: 4px;  --sp-2: 8px;   --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px;  --sp-8: 32px; --sp-12: 48px;
+
+  /* Radius */
+  --r-card:   20px;
+  --r-pill:   999px;
+  --r-button: 16px;
+  --r-input:  28px;
+  --r-image:  12px;
+
+  /* Type families */
+  --ff-display: "Fraunces", ui-serif, Georgia, serif;
+  --ff-ui:      "Inter", ui-sans-serif, -apple-system, system-ui, sans-serif;
+}
+
+/* ========================================================================
+   Type ramp — semantic classes
+   ======================================================================== */
+.t-display-l { font-family: var(--ff-display); font-weight: 600; font-size: 72px; line-height: 0.95; letter-spacing: -0.02em; font-variation-settings: "SOFT" 50, "WONK" 0, "opsz" 144; }
+.t-display-m { font-family: var(--ff-display); font-weight: 500; font-size: 48px; line-height: 1.0;  letter-spacing: -0.02em; font-variation-settings: "SOFT" 50, "WONK" 0, "opsz" 144; }
+.t-headline-l{ font-family: var(--ff-ui);      font-weight: 600; font-size: 28px; line-height: 1.2;  letter-spacing: -0.01em; }
+.t-title-l   { font-family: var(--ff-ui);      font-weight: 600; font-size: 20px; line-height: 1.25; letter-spacing: -0.01em; }
+.t-title-m   { font-family: var(--ff-ui);      font-weight: 600; font-size: 17px; line-height: 1.3; }
+.t-body-l    { font-family: var(--ff-ui);      font-weight: 400; font-size: 16px; line-height: 1.45;}
+.t-body-m    { font-family: var(--ff-ui);      font-weight: 400; font-size: 14px; line-height: 1.45;}
+.t-label-l   { font-family: var(--ff-ui);      font-weight: 500; font-size: 13px; line-height: 1.2;  letter-spacing: 0.01em; }
+.t-caption   { font-family: var(--ff-ui);      font-weight: 400; font-size: 12px; line-height: 1.3;  color: var(--text-secondary); }
+
+/* ========================================================================
+   Page chrome — the artboard canvas
+   ======================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #0A0A0A; color: var(--text-primary); font-family: var(--ff-ui); }
+body { min-height: 100vh; overflow-x: auto; overflow-y: auto; }
+
+.artboard {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 64px;
+  padding: 96px 96px 160px;
+  width: max-content;
+}
+
+.frame-stack { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; position: relative; }
+.frame-caption {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--ff-ui); font-size: 14px; color: var(--text-tertiary);
+}
+.frame-caption .num {
+  font-family: var(--ff-display); font-weight: 600; font-size: 14px;
+  color: var(--text-secondary);
+  width: 24px; height: 24px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--surface-outline-50);
+  background: rgba(255,255,255,0.02);
+}
+.frame-caption .dot { width: 4px; height: 4px; border-radius: 999px; background: var(--text-tertiary); opacity: 0.6; }
+
+/* iPhone 15 Pro device frame */
+.device {
+  position: relative;
+  width: 393px;
+  height: 852px;
+  background: var(--surface-base);
+  border-radius: 54px;
+  overflow: hidden;
+  /* Real device bezel + outline (no shadow alone) */
+  box-shadow:
+    0 0 0 6px #1a1820,
+    0 0 0 7px #2b2630,
+    0 40px 90px rgba(0,0,0,0.6),
+    inset 0 0 0 1px rgba(255,255,255,0.02);
+  isolation: isolate;
+}
+.device .screen { position: absolute; inset: 0; overflow: hidden; }
+
+/* Status bar (iOS) */
+.status-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 59px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 32px 14px; z-index: 50;
+  font-family: var(--ff-ui); font-weight: 600; font-size: 15px;
+  color: var(--text-primary);
+  pointer-events: none;
+}
+.status-bar .right { display: inline-flex; align-items: center; gap: 6px; opacity: 0.95; }
+.status-bar svg { width: 16px; height: 11px; }
+
+/* Dynamic island */
+.island {
+  position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 37px; border-radius: 999px; background: #000;
+  z-index: 60;
+}
+
+/* Home indicator */
+.home-indicator {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  width: 134px; height: 5px; border-radius: 999px;
+  background: rgba(230, 224, 233, 0.55);
+  z-index: 60;
+}
+
+/* Safe-area helper */
+.safe-top { padding-top: 59px; }
+.safe-bottom { padding-bottom: 34px; }
+
+/* ========================================================================
+   Glass + outline utilities
+   ======================================================================== */
+.glass {
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+          backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--surface-outline-50);
+}
+.outline-1 { box-shadow: inset 0 0 0 1px var(--surface-outline-50); }
+
+/* ========================================================================
+   Tier ring + glow helpers
+   ======================================================================== */
+.tier-ring-gold {
+  position: relative;
+  background:
+    linear-gradient(var(--surface-elevated), var(--surface-elevated)) padding-box,
+    linear-gradient(180deg, var(--gold-1), var(--gold-2)) border-box;
+  border: 2px solid transparent;
+  box-shadow:
+    0 0 24px var(--gold-glow),
+    0 0 60px rgba(245, 196, 106, 0.18);
+}
+.tier-ring-silver {
+  background:
+    linear-gradient(var(--surface-elevated), var(--surface-elevated)) padding-box,
+    linear-gradient(180deg, var(--silver-1), var(--silver-2)) border-box;
+  border: 2px solid transparent;
+  box-shadow: 0 0 20px var(--silver-glow);
+}
+.tier-ring-bronze {
+  background:
+    linear-gradient(var(--surface-elevated), var(--surface-elevated)) padding-box,
+    linear-gradient(180deg, var(--bronze-1), var(--bronze-2)) border-box;
+  border: 2px solid transparent;
+  box-shadow: 0 0 16px var(--bronze-glow);
+}
+
+/* Gold gradient text */
+.text-gold {
+  background: linear-gradient(180deg, var(--gold-1) 0%, #E2A647 55%, var(--gold-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.text-silver {
+  background: linear-gradient(180deg, var(--silver-1), var(--silver-2));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.text-bronze {
+  background: linear-gradient(180deg, var(--bronze-1), var(--bronze-2));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* Tier left-strip gradients */
+.strip-gold   { background: linear-gradient(180deg, var(--gold-1), var(--gold-2)); }
+.strip-silver { background: linear-gradient(180deg, var(--silver-1), var(--silver-2)); }
+.strip-bronze { background: linear-gradient(180deg, var(--bronze-1), var(--bronze-2)); }
+.strip-neutral{
+  background:
+    linear-gradient(180deg, rgba(103, 80, 164, 0.34), rgba(79, 55, 139, 0.22)),
+    var(--surface-elevated);
+}
+
+/* Tier pill badges */
+.pill-gold {
+  background: linear-gradient(180deg, var(--gold-1), var(--gold-2));
+  color: #2a1c00;
+}
+.pill-silver {
+  background: linear-gradient(180deg, var(--silver-1), var(--silver-2));
+  color: #1c1c22;
+}
+.pill-bronze {
+  background: linear-gradient(180deg, var(--bronze-1), var(--bronze-2));
+  color: #2a140a;
+}
+
+/* Lucide icon sizing helpers (set on SVG directly) */
+.icon-16 { width: 16px; height: 16px; stroke-width: 1.5; }
+.icon-20 { width: 20px; height: 20px; stroke-width: 1.5; }
+.icon-24 { width: 24px; height: 24px; stroke-width: 1.5; }
+.icon-14 { width: 14px; height: 14px; stroke-width: 1.5; }
+
+/* ========================================================================
+   Motion annotations (overlay arrows + labels)
+   ======================================================================== */
+.anno-layer {
+  position: absolute; inset: -60px -260px -60px 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.anno {
+  position: absolute;
+  font-family: var(--ff-ui);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.anno .arrow {
+  flex-shrink: 0;
+  width: 28px; height: 1px;
+  background: var(--brand-secondary);
+  position: relative;
+  margin-top: 7px;
+  opacity: 0.7;
+}
+.anno .arrow::before {
+  content: ""; position: absolute; left: -4px; top: -2px;
+  width: 5px; height: 5px; border-radius: 999px;
+  background: var(--brand-secondary);
+}
+.anno .label {
+  min-width: 0;
+  max-width: 220px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--surface-outline-50);
+  padding: 6px 10px; border-radius: 8px;
+}
+.anno .label b {
+  color: var(--brand-tertiary); font-weight: 600; letter-spacing: 0.04em;
+  font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 2px;
+}
+
+/* Card reveal demo animation (visual) */
+@keyframes cd-reveal {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.95); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0); }
+}
+@keyframes cd-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes cd-dot-pulse {
+  0%, 100% { transform: scale(1.0); }
+  50%      { transform: scale(1.15); }
+}
+@keyframes cd-dots {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40%           { opacity: 1.0;  transform: scale(1); }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(73,69,79,0.35) 0%,
+    rgba(146,140,160,0.22) 50%,
+    rgba(73,69,79,0.35) 100%
+  );
+  background-size: 200% 100%;
+  animation: cd-shimmer 1.6s linear infinite;
+  border-radius: 8px;
+}

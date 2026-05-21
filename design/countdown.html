@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Countdown — iOS hi-fi mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="screens.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     Reusable inline SVG icon defs (lucide-derived, 1.5 stroke)
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+    </symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 19v3"/>
+    </symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m15 18-6-6 6-6"/>
+    </symbol>
+    <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>
+    </symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+    </symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+    </symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 1 1-3.51-7.13"/><path d="M21 4v5h-5"/>
+    </symbol>
+    <symbol id="i-star" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round">
+      <path d="M12 2.6 14.86 8.4l6.4.93-4.63 4.51 1.1 6.36L12 17.2l-5.73 3 1.1-6.36L2.74 9.33l6.4-.93Z"/>
+    </symbol>
+    <symbol id="i-star-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M12 2.6 14.86 8.4l6.4.93-4.63 4.51 1.1 6.36L12 17.2l-5.73 3 1.1-6.36L2.74 9.33l6.4-.93Z"/>
+    </symbol>
+    <symbol id="i-flame" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M32 56c-9.94 0-18-7.16-18-16 0-7.5 4-12 7-15 1.6-1.6 3-3.4 3-6 0-3 .9-5.6 3-7 2.2-1.5 3.3-1.5 3.3 1 0 4 2.7 6.5 5.4 9.2C39.6 26 44 30 44 38c0 10-6 18-12 18Z"/>
+      <path d="M32 56c-5 0-9-3.5-9-8.2 0-4 3-6.4 4.5-8.6 1-1.4 1.5-2.7 1.5-4.5 0-2.5 1.4-3 2.7-1.5 1.6 2 4.3 4.4 4.3 8.6 0 5.4-1 14.2-4 14.2Z"/>
+    </symbol>
+    <symbol id="i-signal" viewBox="0 0 16 11" fill="currentColor">
+      <rect x="0" y="7"  width="3" height="4" rx="1"/>
+      <rect x="4" y="5"  width="3" height="6" rx="1"/>
+      <rect x="8" y="3"  width="3" height="8" rx="1"/>
+      <rect x="12" y="0" width="3" height="11" rx="1"/>
+    </symbol>
+    <symbol id="i-wifi" viewBox="0 0 16 11" fill="currentColor">
+      <path d="M8 2C5 2 2.4 3 .5 4.7c-.4.4-.4 1 0 1.4l.7.7c.4.4 1 .4 1.4 0C4.1 5.4 5.9 4.7 8 4.7s3.9.7 5.4 2.1c.4.4 1 .4 1.4 0l.7-.7c.4-.4.4-1 0-1.4C13.6 3 11 2 8 2Zm0 4.3c-1.6 0-3 .6-4.1 1.6-.4.4-.4 1 0 1.4l.7.7c.4.4 1 .4 1.4 0 .5-.5 1.2-.8 2-.8s1.5.3 2 .8c.4.4 1 .4 1.4 0l.7-.7c.4-.4.4-1 0-1.4A5.8 5.8 0 0 0 8 6.3Z"/>
+    </symbol>
+    <symbol id="i-battery" viewBox="0 0 27 12" fill="none">
+      <rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/>
+      <rect x="2"   y="2"   width="19" height="8"  rx="1.5" fill="currentColor"/>
+      <path d="M24 4v4c.9-.3 1.5-1 1.5-2s-.6-1.7-1.5-2Z" fill="currentColor" opacity="0.5"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================
+     The artboard
+     ============================================================ -->
+
+<header class="page-head">
+  <div class="page-head-inner">
+    <div class="page-title">
+      <span class="wordmark">Countdown<span class="wm-dot"></span></span>
+      <span class="page-sub">iOS · 7 screens · hi-fi</span>
+    </div>
+    <div class="page-meta">
+      <span>iPhone 15 Pro · 393 × 852pt</span>
+      <span class="page-meta-dot"></span>
+      <span>Dark · violet</span>
+      <span class="page-meta-dot"></span>
+      <span>Fraunces + Inter</span>
+    </div>
+  </div>
+</header>
+
+<main class="artboard">
+
+  <!-- ============================================================
+       SCREEN 1 — Splash
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="01 Splash">
+    <div class="frame-caption"><span class="num">1</span><span>Splash</span><span class="dot"></span><span>cold launch · ~600ms</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen splash-screen">
+        <div class="splash-glow"></div>
+        <div class="splash-wordmark">
+          <span class="t-display-m">Countdow<span class="wordmark-n">n<span class="splash-dot"></span></span></span>
+          <div class="splash-tag t-caption">cinematic rankings, on demand</div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 360px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Brand dot · pulse</b>scale 1.0 → 1.15 · 1.2s ease-in-out · infinite</div>
+      </div>
+      <div class="anno" style="top: 480px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Wordmark · Fraunces 48 / 500</b>colour: brand.tertiary (#EFB8C8)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN 2 — Search (idle)
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="02 Search">
+    <div class="frame-caption"><span class="num">2</span><span>Search · idle</span><span class="dot"></span><span>tap chip → submit</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen search-screen">
+        <div class="search-ambient"></div>
+
+        <h1 class="search-headline t-headline-l">What do you want ranked?</h1>
+
+        <div class="search-bar glass">
+          <svg class="icon-20" style="color:var(--text-secondary)"><use href="#i-search"/></svg>
+          <span class="search-placeholder t-body-l">Top 10 ramen in Tokyo</span>
+          <span class="search-caret"></span>
+          <button class="search-mic" aria-label="voice">
+            <svg class="icon-24" style="color:var(--brand-secondary)"><use href="#i-mic"/></svg>
+          </button>
+        </div>
+
+        <div class="chip-grid">
+          <button class="chip">Top 10 ramen in Tokyo</button>
+          <button class="chip">Best entrepreneurship books</button>
+          <button class="chip">Most underrated horror films</button>
+          <button class="chip">Greatest tennis players</button>
+          <button class="chip">Top sci-fi novels of the 2020s</button>
+          <button class="chip">Best beaches in Portugal</button>
+        </div>
+
+        <div class="search-foot t-caption">Powered by GPT-4o-mini · Images by Unsplash</div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 215px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Input · glass</b>56pt · radius 28 · 70% surface fill + 24px blur</div>
+      </div>
+      <div class="anno" style="top: 360px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Placeholder · rotates</b>3.5s cycle · cross-fade 240ms</div>
+      </div>
+      <div class="anno" style="top: 540px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Chip tap → submit</b>scales 0.96 on press · medium haptic</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN 3 — Ranking (streaming)
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="03 Ranking — streaming">
+    <div class="frame-caption"><span class="num">3</span><span>Ranking · streaming</span><span class="dot"></span><span>cards reveal 10→1 with stagger</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen ranking-screen">
+
+        <!-- Sticky frosted app bar -->
+        <div class="app-bar glass">
+          <button class="ab-btn" aria-label="back">
+            <svg class="icon-24" style="color:var(--text-secondary)"><use href="#i-chev-left"/></svg>
+          </button>
+          <div class="ab-title t-label-l">Top 10 ramen in Tokyo</div>
+          <button class="ab-btn ab-disabled" aria-label="share">
+            <svg class="icon-24" style="color:var(--text-tertiary)"><use href="#i-share"/></svg>
+          </button>
+        </div>
+
+        <!-- Status sub-header -->
+        <div class="status-sub">
+          <span class="dots">
+            <span></span><span></span><span></span>
+          </span>
+          <span class="t-caption">Revealing 4 of 10…</span>
+        </div>
+
+        <!-- Card list -->
+        <div class="card-list" id="streaming-cards">
+          <!-- cards injected by JS to keep markup tight -->
+        </div>
+
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 140px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>App bar · sticky glass</b>24px blur + outline · query italicised</div>
+      </div>
+      <div class="anno" style="top: 230px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Streaming pulse</b>3 dots · brand.secondary · 800ms loop</div>
+      </div>
+      <div class="anno" style="top: 360px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Card reveal</b>opacity 0→1 · scale 0.95→1 · blur 8→0 · 280ms easeOutCubic · 60ms stagger</div>
+      </div>
+      <div class="anno" style="top: 500px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Score bar</b>fills 0→% · 200ms after card lands · tier colour</div>
+      </div>
+      <div class="anno" style="top: 660px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Skeleton slots</b>same shape · shimmer at surface.outline · ranks 3/2/1 hidden until reveal</div>
+      </div>
+      <div class="anno" style="top: 800px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Haptic</b>light impact on each card landing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN 4 — #1 reveal moment
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="04 #1 reveal">
+    <div class="frame-caption"><span class="num">4</span><span>#1 reveal · the moment</span><span class="dot"></span><span>warm tint + confetti + cta</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen reveal-screen">
+
+        <!-- Warm radial bleed from top -->
+        <div class="warm-bleed"></div>
+
+        <!-- Sticky frosted app bar -->
+        <div class="app-bar glass">
+          <button class="ab-btn" aria-label="back">
+            <svg class="icon-24" style="color:var(--text-secondary)"><use href="#i-chev-left"/></svg>
+          </button>
+          <div class="ab-title t-label-l">Top 10 ramen in Tokyo</div>
+          <button class="ab-btn" aria-label="share">
+            <svg class="icon-24" style="color:var(--text-secondary)"><use href="#i-share"/></svg>
+          </button>
+        </div>
+
+        <div class="status-sub status-done">
+          <span class="done-dot"></span>
+          <span class="t-caption">Revealed all 10 · 8s</span>
+        </div>
+
+        <!-- Podium: 3 → 2 → 1 stacked, #1 biggest -->
+        <div class="podium" id="podium-cards"></div>
+
+        <!-- Confetti overlay -->
+        <div class="confetti" id="confetti"></div>
+
+        <!-- Sticky bottom glass CTA -->
+        <div class="bottom-cta glass">
+          <button class="cta-pill cta-filled">
+            <svg class="icon-16"><use href="#i-share"/></svg>
+            <span class="t-label-l">Share</span>
+          </button>
+          <button class="cta-pill cta-outline">
+            <svg class="icon-16"><use href="#i-rotate"/></svg>
+            <span class="t-label-l">Ask another</span>
+          </button>
+        </div>
+
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 130px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Warm background tint</b>6% gold radial · 800ms in · hold 400ms · 800ms out</div>
+      </div>
+      <div class="anno" style="top: 320px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>#1 reveal · slow & big</b>700ms easeOutQuart · medium haptic</div>
+      </div>
+      <div class="anno" style="top: 430px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Confetti burst</b>12 gold particles · gravity · 1.2s · fade out final 400ms</div>
+      </div>
+      <div class="anno" style="top: 580px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Gold gradient ring + glow</b>2px ring · 24px outer amber bloom</div>
+      </div>
+      <div class="anno" style="top: 760px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Bottom glass bar</b>filled primary + outline · slides up 400ms after #1</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN 5 — Detail (place)
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="05 Detail">
+    <div class="frame-caption"><span class="num">5</span><span>Detail · place</span><span class="dot"></span><span>tap any rank → detail</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar status-bar-light">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen detail-screen">
+
+        <!-- Back chevron, floats over hero -->
+        <button class="detail-back glass">
+          <svg class="icon-24" style="color:var(--text-primary)"><use href="#i-chev-left"/></svg>
+        </button>
+
+        <div class="detail-scroll">
+
+          <!-- Hero image -->
+          <div class="detail-hero img-mensho">
+            <div class="hero-fade"></div>
+            <div class="hero-overlay">
+              <span class="hero-rank t-display-l text-gold">1</span>
+              <span class="hero-pill pill-gold t-label-l">GOLD · #1</span>
+            </div>
+          </div>
+
+          <div class="detail-body">
+
+            <h1 class="t-title-l detail-title">Mensho Tokyo</h1>
+
+            <div class="detail-score">
+              <span class="t-display-m text-gold">9.6</span>
+              <span class="t-body-l score-denom">/ 10</span>
+              <span class="star-row">
+                <svg class="icon-16 star-on"><use href="#i-star"/></svg>
+                <svg class="icon-16 star-on"><use href="#i-star"/></svg>
+                <svg class="icon-16 star-on"><use href="#i-star"/></svg>
+                <svg class="icon-16 star-on"><use href="#i-star"/></svg>
+                <svg class="icon-16 star-on"><use href="#i-star"/></svg>
+              </span>
+            </div>
+
+            <p class="t-body-l detail-copy">
+              A lamb-broth maverick from Shimo-Ochiai, Mensho's tsukemen has converted every purist in town. Hand-pulled noodles, koji-aged tare, and a duck-fat finish that lingers like incense. Worth every minute of the queue.
+            </p>
+
+            <h2 class="t-title-m detail-section">Location</h2>
+            <div class="detail-map">
+              <div class="map-tile"></div>
+              <div class="map-pin">
+                <span class="pin-ring"></span>
+                <svg class="icon-24" style="color:var(--brand-primary)"><use href="#i-pin"/></svg>
+              </div>
+              <div class="map-address t-caption">2-4-1 Shimo-Ochiai · Shinjuku · Tokyo</div>
+            </div>
+
+            <div class="chip-row">
+              <button class="ext-chip"><span class="t-label-l">Open in Maps</span><svg class="icon-16"><use href="#i-ext"/></svg></button>
+              <button class="ext-chip"><span class="t-label-l">Search on Google</span><svg class="icon-16"><use href="#i-ext"/></svg></button>
+              <button class="ext-chip"><span class="t-label-l">Wikipedia</span><svg class="icon-16"><use href="#i-ext"/></svg></button>
+              <button class="ext-chip"><span class="t-label-l">Tabelog</span><svg class="icon-16"><use href="#i-ext"/></svg></button>
+            </div>
+
+            <div class="detail-bottom-spacer"></div>
+          </div>
+        </div>
+
+        <!-- Sticky bottom button -->
+        <div class="detail-cta">
+          <button class="reroll-btn">
+            <svg class="icon-16" style="color:var(--brand-secondary)"><use href="#i-rotate"/></svg>
+            <span class="t-label-l">Re-roll this rank</span>
+          </button>
+        </div>
+
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 130px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Hero · 320pt full-bleed</b>bottom fades into surface.base via gradient</div>
+      </div>
+      <div class="anno" style="top: 360px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Gold gradient text fill</b>Fraunces display.l + linear gradient text</div>
+      </div>
+      <div class="anno" style="top: 560px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Map embed · 200pt</b>desaturated tile · brand.primary pin · radius 20</div>
+      </div>
+      <div class="anno" style="top: 720px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Chip row</b>horizontal scroll · ext-link trailing icon</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN 6 — Share (9:16 export preview)
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="06 Share">
+    <div class="frame-caption"><span class="num">6</span><span>Share · 9:16 export</span><span class="dot"></span><span>preview before send</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen share-screen">
+
+        <div class="share-bar glass">
+          <button class="ab-btn" aria-label="close">
+            <svg class="icon-24" style="color:var(--text-secondary)"><use href="#i-chev-left"/></svg>
+          </button>
+          <div class="ab-title t-label-l" style="font-style:normal">Share your ranking</div>
+          <div style="width:32px"></div>
+        </div>
+
+        <div class="share-preview-wrap">
+          <div class="share-preview">
+            <div class="sp-bg"></div>
+
+            <div class="sp-header">
+              <div class="sp-eyebrow t-caption">COUNTDOWN · TOKYO</div>
+              <div class="sp-query" style="font-family:var(--ff-display); font-weight:500; font-size:22px; line-height:1.1; letter-spacing:-0.02em;">
+                Top 10 ramen<br/><span style="color:var(--brand-tertiary)">in Tokyo</span>
+              </div>
+            </div>
+
+            <div class="sp-mini-list" id="share-mini-list"></div>
+
+            <div class="sp-watermark">
+              <span class="t-caption" style="color:rgba(230,224,233,0.55);letter-spacing:0.12em">COUNTDOWN<span style="display:inline-block;width:4px;height:4px;border-radius:999px;background:var(--brand-tertiary);margin-left:3px;vertical-align:1px"></span></span>
+            </div>
+          </div>
+        </div>
+
+        <button class="share-btn">
+          <svg class="icon-16"><use href="#i-share"/></svg>
+          <span class="t-label-l">Share</span>
+        </button>
+
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 200px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Export composition · 9:16</b>rendered to PNG · saved to Photos / Share Sheet</div>
+      </div>
+      <div class="anno" style="top: 420px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Mini-cards</b>rank + title + score bar only · top-3 keep tier colour</div>
+      </div>
+      <div class="anno" style="top: 720px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>CTA · filled brand.primary</b>full width · opens system share sheet</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN 7 — Error (rate limited 429)
+       ============================================================ -->
+  <section class="frame-stack" data-screen-label="07 Error · 429">
+    <div class="frame-caption"><span class="num">7</span><span>Error · rate limited</span><span class="dot"></span><span>HTTP 429 · retry countdown</span></div>
+    <div class="device">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg><use href="#i-signal"/></svg>
+          <svg><use href="#i-wifi"/></svg>
+          <svg style="width:27px;height:12px"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+      <div class="screen error-screen">
+
+        <div class="app-bar glass">
+          <button class="ab-btn" aria-label="back">
+            <svg class="icon-24" style="color:var(--text-secondary)"><use href="#i-chev-left"/></svg>
+          </button>
+          <div class="ab-title t-label-l">Top 10 ramen in Tokyo</div>
+          <div style="width:32px"></div>
+        </div>
+
+        <div class="error-stack">
+          <div class="flame-wrap">
+            <div class="flame-aura"></div>
+            <svg style="width:120px;height:120px;color:var(--brand-secondary)"><use href="#i-flame"/></svg>
+          </div>
+          <h2 class="t-headline-l" style="margin:8px 0 0;text-align:center">Easy, tiger</h2>
+          <p class="t-body-l error-body">
+            GPT is asking us to slow down. Try again in <span id="retry-n">12</span>s.
+          </p>
+          <button class="retry-pill">
+            <span class="t-label-l">Retry in <span id="retry-n2">12</span>s</span>
+          </button>
+          <div class="error-help t-caption">Tip: shorter queries hit the cache and skip the queue.</div>
+        </div>
+
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div class="anno-layer">
+      <div class="anno" style="top: 280px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Flame · brand.secondary stroke</b>no fill · 120pt · subtle aura behind</div>
+      </div>
+      <div class="anno" style="top: 540px; left: 320px;">
+        <div class="arrow"></div>
+        <div class="label"><b>Retry countdown</b>number decrements 1s · button enables at 0 with light haptic</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Token sheet — for engineering handoff
+       ============================================================ -->
+  <section class="token-sheet">
+    <div class="frame-caption"><span class="num">T</span><span>Token sheet</span><span class="dot"></span><span>handoff reference</span></div>
+    <div class="token-card">
+
+      <div class="ts-section">
+        <div class="ts-h t-label-l">Brand</div>
+        <div class="swatch-grid">
+          <div class="sw"><span class="chip-sw" style="background:#6750A4"></span><div class="sw-name">brand.primary</div><div class="sw-val">#6750A4</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#4F378B"></span><div class="sw-name">brand.primaryContainer</div><div class="sw-val">#4F378B</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#9A82DB"></span><div class="sw-name">brand.secondary</div><div class="sw-val">#9A82DB</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#EFB8C8"></span><div class="sw-name">brand.tertiary</div><div class="sw-val">#EFB8C8</div></div>
+        </div>
+      </div>
+
+      <div class="ts-section">
+        <div class="ts-h t-label-l">Surface · Text</div>
+        <div class="swatch-grid">
+          <div class="sw"><span class="chip-sw" style="background:#141218;border-color:rgba(255,255,255,.08)"></span><div class="sw-name">surface.base</div><div class="sw-val">#141218</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#1D1B20"></span><div class="sw-name">surface.elevated</div><div class="sw-val">#1D1B20</div></div>
+          <div class="sw"><span class="chip-sw glass" style="background:rgba(38,35,42,.70)"></span><div class="sw-name">surface.glass</div><div class="sw-val">70% + 24 blur</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#49454F"></span><div class="sw-name">surface.outline</div><div class="sw-val">#49454F</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#E6E0E9"></span><div class="sw-name">text.primary</div><div class="sw-val">#E6E0E9</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#CAC4D0"></span><div class="sw-name">text.secondary</div><div class="sw-val">#CAC4D0</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#938F99"></span><div class="sw-name">text.tertiary</div><div class="sw-val">#938F99</div></div>
+          <div class="sw"><span class="chip-sw" style="background:#F2B8B5"></span><div class="sw-name">state.error</div><div class="sw-val">#F2B8B5</div></div>
+        </div>
+      </div>
+
+      <div class="ts-section">
+        <div class="ts-h t-label-l">Tier — 1 · 2 · 3</div>
+        <div class="tier-row">
+          <div class="tier-sw strip-gold"><span class="t-label-l" style="color:#2a1c00">GOLD</span></div>
+          <div class="tier-sw strip-silver"><span class="t-label-l" style="color:#1c1c22">SILVER</span></div>
+          <div class="tier-sw strip-bronze"><span class="t-label-l" style="color:#2a140a">BRONZE</span></div>
+        </div>
+        <div class="ts-note t-caption">Gradient + outer glow · 24/20/16px blur</div>
+      </div>
+
+      <div class="ts-section">
+        <div class="ts-h t-label-l">Type ramp</div>
+        <div class="type-row"><span class="t-display-l">42</span><span class="t-caption">display.l · Fraunces 72 / 600</span></div>
+        <div class="type-row"><span class="t-display-m">42</span><span class="t-caption">display.m · Fraunces 48 / 500</span></div>
+        <div class="type-row"><span class="t-headline-l">Headline</span><span class="t-caption">headline.l · Inter 28 / 600</span></div>
+        <div class="type-row"><span class="t-title-l">Title large</span><span class="t-caption">title.l · Inter 20 / 600</span></div>
+        <div class="type-row"><span class="t-title-m">Title medium</span><span class="t-caption">title.m · Inter 17 / 600</span></div>
+        <div class="type-row"><span class="t-body-l">Body large</span><span class="t-caption">body.l · Inter 16 / 400</span></div>
+        <div class="type-row"><span class="t-body-m">Body medium</span><span class="t-caption">body.m · Inter 14 / 400</span></div>
+        <div class="type-row"><span class="t-label-l">LABEL</span><span class="t-caption">label.l · Inter 13 / 500</span></div>
+      </div>
+
+      <div class="ts-section">
+        <div class="ts-h t-label-l">Spacing</div>
+        <div class="spacing-row">
+          <div class="sp-stack"><div class="sp-bar" style="width:4px"></div><div class="t-caption">4</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:8px"></div><div class="t-caption">8</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:12px"></div><div class="t-caption">12</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:16px"></div><div class="t-caption">16</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:20px"></div><div class="t-caption">20</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:24px"></div><div class="t-caption">24</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:32px"></div><div class="t-caption">32</div></div>
+          <div class="sp-stack"><div class="sp-bar" style="width:48px"></div><div class="t-caption">48</div></div>
+        </div>
+      </div>
+
+      <div class="ts-section">
+        <div class="ts-h t-label-l">Radius</div>
+        <div class="radius-row">
+          <div class="rd-cell"><div class="rd-box" style="border-radius:12px"></div><div class="t-caption">12 · image</div></div>
+          <div class="rd-cell"><div class="rd-box" style="border-radius:16px"></div><div class="t-caption">16 · button</div></div>
+          <div class="rd-cell"><div class="rd-box" style="border-radius:20px"></div><div class="t-caption">20 · card</div></div>
+          <div class="rd-cell"><div class="rd-box" style="border-radius:28px"></div><div class="t-caption">28 · input</div></div>
+          <div class="rd-cell"><div class="rd-box" style="border-radius:999px"></div><div class="t-caption">∞ · pill</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script src="cards.js"></script>
+</body>
+</html>

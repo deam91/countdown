@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // \"\"' | { read -r f; case \"$f\" in */lib/*|*/pubspec.yaml|*/analysis_options.yaml|*/Makefile) printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Heads up: you just edited a load-bearing file. If this change touches architecture, dependencies, theming, screen flow, conventions, or scope, update IDEA.md (full spec) and CLAUDE.md (project briefing) so future sessions see current reality. Skip if purely cosmetic.\"}}\\n' ;; esac; } 2>/dev/null"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // \"\"' | { read -r f; case \"$f\" in */IDEA.md|*/CLAUDE.md) printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Doc file edited. After this change, cross-check: does CLAUDE.md still match IDEA.md on stack, theme, architecture, and conventions? If not, sync them now.\"}}\\n' ;; esac; } 2>/dev/null"
+          }
+        ]
+      }
+    ]
+  }
+}
