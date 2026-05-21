@@ -166,6 +166,7 @@ Scale (semantic):
   - On land, a brief gold confetti burst (8 particles, 1.2s lifecycle) overlays from behind the card.
   - The whole screen background subtly warms (a 6% gold overlay fades in for 800ms then back out).
   - Medium haptic.
+- **Auto-finale scroll:** when the state transitions to `done`, the screen smoothly scrolls (`easeOutCubic`, 900ms) to the bottom of the list. This brings #1 into the viewport so the `VisibilityDetector` inside `RankOneReveal` fires the confetti reveal without the user having to scroll manually.
 - **Footer:** when `done`, a sticky bottom glass bar with two pill buttons: "Share" and "Ask another."
 
 ### 3.4 Detail screen

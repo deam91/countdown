@@ -35,6 +35,7 @@ class RankingScreen extends ConsumerStatefulWidget {
 
 class _RankingScreenState extends ConsumerState<RankingScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -42,6 +43,29 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(
         ref.read(rankingControllerProvider.notifier).ask(widget.query, n: widget.n),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Smoothly scroll to the bottom of the list, where #1 sits.
+  /// Triggered once `RankingState` transitions to [RankingDone] so the
+  /// VisibilityDetector inside `RankOneReveal` fires the confetti reveal
+  /// without the user having to scroll manually.
+  void _scrollToFinale() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      unawaited(
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeOutCubic,
+        ),
       );
     });
   }
@@ -59,6 +83,14 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<RankingState>(rankingControllerProvider, (prev, next) {
+      // On the transition into Done, auto-scroll so #1 enters the
+      // viewport and the visibility-triggered reveal/confetti fires.
+      if (next is RankingDone && prev is! RankingDone) {
+        _scrollToFinale();
+      }
+    });
+
     final state = ref.watch(rankingControllerProvider);
     final items = switch (state) {
       RankingStreaming(:final partial) => partial,
@@ -85,6 +117,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
               children: [
                 _RevealBackgroundGlow(active: isDone || _hasRankOne(items)),
                 ListView(
+                  controller: _scrollController,
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top + kToolbarHeight,
                     left: Spacing.sp4,
