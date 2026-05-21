@@ -305,7 +305,10 @@ class _KindImage extends StatelessWidget {
                 fit: BoxFit.cover,
                 fadeInDuration: const Duration(milliseconds: 200),
                 placeholder: (_, _) => fallback,
-                errorWidget: (_, _, _) => fallback,
+                errorWidget: (_, failedUrl, error) {
+                  debugPrint('[img] failed: $failedUrl ($error)');
+                  return fallback;
+                },
               ),
       ),
     );

@@ -16,7 +16,8 @@ A Flutter iOS app that turns "give me the top N…" questions into a cinematic s
 - **Flutter:** pinned to **3.44.0** via FVM (`.fvmrc`). Always invoke as `fvm flutter ...` (or via the `Makefile`).
 - **State:** `flutter_riverpod` **^3.3.1** with **manual providers**. The codegen ecosystem (`riverpod_annotation` / `_generator` / `_lint` / `custom_lint`) was dropped — its analyzer pin (7-9) conflicts with `json_serializable ^6.14` (analyzer 10+). Costs ~5 lines per provider; keeps everything else current.
 - **Models:** `freezed` ^3.2.5 + `json_serializable` ^6.14.0 (run `make gen` after model edits).
-- **AI:** **`openai_dart` ^5.0.0** — streaming chat completions + `response_format: json_schema` against `gpt-4o-mini`. **Don't write a custom SSE parser** — the package handles it.
+- **AI:** **`openai_dart` ^5.0.0** — streaming chat completions against **`gpt-4o-mini`** with `response_format: json_schema`. Ranking text only — image URLs come from Wikipedia (see below). ~$0.001/query, ~3s. Both `gpt-4o-mini-search-preview` and `gpt-4o-search-preview` were tried for image URLs and both hallucinated paths even with web search; the only reliable path is enriching post-hoc. **Don't write a custom SSE parser** — the package handles it.
+- **Image enrichment:** **`WikipediaImageLookup`** — two-step REST per item (search → summary), parallelized. Lives between OpenAI and the drip in `RankingRepository`. Free, no auth, ~85-95% coverage. The single-call `prop=pageimages` MediaWiki API was tried first and returned empty thumbnails for most pages; the REST summary endpoint is the reliable path.
 - **HTTP (non-AI):** `dio` ^5.9.2 + `dio_smart_retry` ^7.0.1 + `pretty_dio_logger` ^1.4.0 (used for Unsplash; AI traffic goes through `openai_dart`).
 - **Maps:** `flutter_map` + OpenStreetMap (no Google Maps key).
 - **Fonts:** `google_fonts` — Fraunces (display) + Inter (UI).

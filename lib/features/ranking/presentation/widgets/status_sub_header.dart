@@ -31,15 +31,20 @@ class StatusSubHeader extends StatelessWidget {
         vertical: Spacing.sp3,
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (showDots) const _Dots(),
-          if (showDots) const SizedBox(width: Spacing.sp2),
-          Expanded(
+          if (showDots) ...[
+            const _Dots(),
+            const SizedBox(width: Spacing.sp2),
+          ],
+          Flexible(
             child: Text(
               text,
               style: AppTypography.caption,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
           ),
         ],

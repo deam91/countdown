@@ -209,7 +209,8 @@ Scale (semantic):
 | Language | Dart 3.5+ | Sealed classes, patterns, sound null safety |
 | State | `flutter_riverpod` ^3.3.1 (manual providers) | Async-native, stream-friendly. Codegen (`riverpod_generator` / `riverpod_lint` / `custom_lint`) was evaluated but dropped — its analyzer pin (7-9) conflicts with `json_serializable ^6.14` (analyzer 10+). Manual providers cost ~5 lines per provider; we keep the modern stack everywhere else. |
 | Models | `freezed` 3.x + `json_serializable` | Sealed unions, immutability |
-| **AI client** | **`openai_dart` 5.x** — streaming + `response_format: json_schema` against `gpt-4o-mini` | OpenAPI-generated, actively maintained, eliminates ~150 lines of custom SSE/retry/schema code |
+| **AI client** | **`openai_dart` 5.x** — streaming chat completions against **`gpt-4o-mini`** with `response_format: json_schema` | OpenAPI-generated. Ranking text only — no image URLs (the model proved unreliable at URLs even with `gpt-4o-search-preview` + web search; every URL was a hallucinated `wp-content/uploads/...` path). ~$0.001/query, ~3s. |
+| **Image enrichment** | **`WikipediaImageLookup`** — REST `/w/rest.php/v1/search/page` to resolve the page title, then REST `/api/rest_v1/page/summary/{title}` for the thumbnail. Two calls per item, all parallelized. | Free, no auth. The MediaWiki `prop=pageimages` API returned empty for most pages in practice; the REST summary endpoint reliably returns thumbnails. ~85-95% coverage. Latency ~1-2s parallelized. |
 | HTTP (non-AI) | `dio` ^5.9.2 + `dio_smart_retry` ^7.0.1 + `pretty_dio_logger` ^1.4.0 | Unsplash + retry/logging |
 | Image enrichment | Unsplash API (free) | No billing setup |
 | Maps | `flutter_map` + OpenStreetMap | No Google Maps key |
@@ -262,9 +263,10 @@ lib/
 │   ├── ranking/
 │   │   ├── data/
 │   │   │   ├── ranking_client.dart         # interface (testability seam)
-│   │   │   ├── openai_client.dart          # thin wrapper over openai_dart; emits Stream<RankItem>
-│   │   │   ├── ranking_cache.dart          # hive_ce-backed, LRU max 50, no TTL
-│   │   │   ├── ranking_repository.dart     # cache-first, then OpenAI fallback
+│   │   │   ├── openai_client.dart          # gpt-4o-mini wrapper; emits Stream<RankItem> (no image URLs)
+│   │   │   ├── wikipedia_image_lookup.dart # parallel two-step REST thumbnail fetcher (search → summary)
+│   │   │   ├── ranking_cache.dart          # hive_ce-backed, box `ranking_cache_v2`, LRU 50
+│   │   │   ├── ranking_repository.dart     # cache-first → OpenAI → enrich → drip
 │   │   │   └── prompt_builder.dart
 │   │   ├── domain/
 │   │   │   ├── rank_item.dart              # sealed: Place|Book|Person|Generic
@@ -374,11 +376,12 @@ sealed class RankingState with _$RankingState {
 ## 7. OpenAI integration
 
 - **Client:** **`openai_dart` 5.x** — typed, OpenAPI-generated. Supports streaming, structured outputs, cancellation, and retries natively. We don't write the SSE parser or schema validator.
-- **Model:** `gpt-4o-mini` (cheap, fast, structured outputs).
-- **System prompt:** "You are a ranking expert. Return exactly N items sorted from worst to best (rank N down to rank 1) so the user gets a countdown reveal. Choose the most appropriate `kind` per item."
-- **JSON schema:** enforces the sealed `RankItem` union via a discriminator `kind`. Defined in `prompt_builder.dart` and passed as `responseFormat: ResponseFormatJsonSchema(...)`.
-- **Streaming:** `client.createChatCompletionStream(...)` yields incremental tokens; a tolerant JSON parser in `openai_client.dart` emits each completed `RankItem` to the controller as soon as it closes.
-- **Image enrichment:** as each item lands, fire-and-forget Unsplash lookup using `title` + `kind` hint. Update card `imageUrl` when it returns; card shows a tasteful purple-to-charcoal gradient placeholder in the meantime.
+- **Model:** **`gpt-4o-mini`** with `response_format: json_schema`. Ranking text only — no image URLs. ~$0.001/query, ~3s.
+- **Why no LLM image URLs:** both `gpt-4o-mini-search-preview` and `gpt-4o-search-preview` (with `webSearchOptions`) were tried, and both **hallucinated URLs**. Mini emitted identical `upload.wikimedia.org/wikipedia/commons/4/4e/<title>.jpg` patterns for every item. Full-size emitted plausible `wp-content/uploads/YYYY/MM/<slug>.jpg` paths that all 404'd. The model knows the *shape* of image URLs but doesn't actually pull them from search results. Hard fail.
+- **Resolution — Wikipedia enrichment:** after OpenAI returns titles, `WikipediaImageLookup` runs a parallel two-step REST flow per item — (1) `/w/rest.php/v1/search/page?q={title}&limit=1` resolves the actual Wikipedia page title (handles disambiguation, e.g. "Hereditary" → "Hereditary (film)"), (2) `/api/rest_v1/page/summary/{resolved}` returns the thumbnail URL. The single-call MediaWiki `prop=pageimages` API was tried first and returned empty thumbnails for most pages, even when a representative image clearly exists on the page. Free, no auth, CORS-friendly.
+- **JSON schema:** enforces the sealed `RankItem` union via a discriminator `kind`. `imageUrl` stays in the schema (always null from OpenAI; filled in by the enricher).
+- **Streaming + drip:** `client.chat.completions.createStream(...)` collects the full JSON, parses it, hands the items to the repository. The repository runs Wikipedia enrichment in parallel, then drips enriched items to the controller at 220ms cadence — *the repository owns the drip*, not the client.
+- **Image rendering:** each item's `imageUrl` loads via `CachedNetworkImage` (disk + memory cache). On null, loading, or load error, a kind-specific Lucide icon placeholder (`mapPin` / `bookOpen` / `user` / `image`) shows over a tinted gradient — so the card always reads cleanly when Wikipedia has no match.
 
 ---
 
@@ -484,7 +487,8 @@ What's actually scaffolded as of the last commit. Update this section as work pr
 - ✅ **App icon + native splash** — generated from `assets/logo.png` via `flutter_launcher_icons` + `flutter_native_splash`.
 - ✅ **Git** — repo on `main`, scaffold commit `a013059`.
 - ✅ **`RankingClient` interface** (`ranking_client.dart`) — abstraction over "produce a stream of ranked items," implemented by `CountdownOpenAIClient`. Exists so the repository is unit-testable without hitting the network.
-- ✅ **OpenAI client wrapper** (`openai_client.dart`) — wraps `openai_dart` 5.x, builds JSON schema for the sealed `RankItem` union, streams items as `Stream<RankItem>`, maps SDK exceptions to typed `AppError`s.
+- ✅ **OpenAI client wrapper** (`openai_client.dart`) — wraps `openai_dart` 5.x against `gpt-4o-mini`, builds JSON schema for the sealed `RankItem` union, streams items as `Stream<RankItem>`, maps SDK exceptions to typed `AppError`s. Image URLs from the model proved unreliable (hallucinations even with web search), so the client no longer requests them.
+- ✅ **Wikipedia image enricher** (`wikipedia_image_lookup.dart`) — parallel two-step REST per item: `/v1/search/page` resolves the actual page title, then `/api/rest_v1/page/summary/{title}` returns the thumbnail. Replaces the abandoned "LLM provides URLs" approach (which hallucinated every URL even with `gpt-4o-search-preview` + `webSearchOptions`).
 - ✅ **Ranking cache** (`ranking_cache.dart`) — `hive_ce`-backed, LRU 50, normalized query key, JSON encoding.
 - ✅ **Ranking repository** (`ranking_repository.dart`) — cache-first; on miss → OpenAI stream → persist; on hit → re-emit with drip cadence so the reveal animation still plays. State machine: `loading → streaming → done | error`.
 - ✅ **Ranking controller** (`ranking_controller.dart`) — Riverpod `Notifier<RankingState>` with cancellation on new query and dispose-time cleanup.
@@ -501,7 +505,8 @@ What's actually scaffolded as of the last commit. Update this section as work pr
   - `ConfettiBurst` (gold + tertiary) overlaid on #1; subtle warm radial background glow when #1 lands.
   - `_DoneBottomBar` (glass-frosted) with `Share` and `Ask another` pills.
   - Wired through `rankingControllerProvider`; temporary `_DevHome` entry point in `app.dart`.
-- ⬜ **Search screen / Detail / Share / Error screens**.
+- ✅ **Share button** (MVP) — both the app-bar share icon and the Done-bar Share pill capture the cards area via `ScreenshotController`, save to a temp PNG, and hand to the iOS share sheet via `share_plus`. The dedicated 9:16 composition per `IDEA.md §3.5` is a future upgrade.
+- ⬜ **Search screen / Detail / Error screens**.
 - ⬜ **Widget + golden tests** (one per card kind, gold top-3 golden).
 - ⬜ **README + demo recording**.
 

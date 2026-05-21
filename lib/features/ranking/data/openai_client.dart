@@ -6,16 +6,21 @@ import 'package:countdown/core/errors.dart';
 import 'package:countdown/features/ranking/data/prompt_builder.dart';
 import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/domain/rank_item.dart';
+import 'package:flutter/foundation.dart';
 import 'package:openai_dart/openai_dart.dart';
 
-/// Thin wrapper over `openai_dart` that streams typed [RankItem]s for a
+/// Thin wrapper over `openai_dart` that yields typed [RankItem]s for a
 /// ranking query.
 ///
-/// The model returns the full JSON in one structured response (json_schema),
-/// but we drip items out one-by-one with a small delay so the countdown
-/// reveal animation has time to play. A future upgrade is to tolerantly
-/// parse the streaming JSON for true item-by-item streaming — see IDEA.md §7.
+/// The model returns the full JSON in one structured response (json_schema);
+/// we parse it and emit items as a stream. The drip cadence between
+/// items is owned by `RankingRepository`, not this client — the client
+/// returns items as fast as it can. Image enrichment happens after this
+/// stream completes (see `WikipediaImageLookup`).
 class CountdownOpenAIClient implements RankingClient {
+  /// `gpt-4o-mini` for ranking generation only — no web search, no
+  /// image URL responsibility. Cheap (~$0.001/query), fast (~3s).
+  /// Image URLs are added downstream by WikipediaImageLookup.
   CountdownOpenAIClient({
     required String apiKey,
     this._model = 'gpt-4o-mini',
@@ -24,26 +29,17 @@ class CountdownOpenAIClient implements RankingClient {
   final OpenAIClient _client;
   final String _model;
 
-  /// Tiny delay between drips so cards animate in with a visible cadence.
-  static const Duration _dripDelay = Duration(milliseconds: 220);
-
-  /// Streams ranked items as they become available. Items arrive in
-  /// **countdown order** — rank N first, rank 1 last.
-  ///
-  /// Throws an [AppError] on any failure. Cancelling the subscription
-  /// stops the drip but does not abort the in-flight HTTP request
-  /// (the request is short — typically <3s).
+  /// Yields ranked items in **countdown order** (rank N first, rank 1
+  /// last) as fast as they're parsed. The repository owns the drip
+  /// cadence so it can sit between this stream and the UI.
   @override
   Stream<RankItem> rank({
     required String query,
     int n = 10,
   }) async* {
     final fullText = await _completeAsText(query: query, n: n);
-    final items = _parseItems(fullText);
-
-    for (final item in items) {
+    for (final item in _parseItems(fullText)) {
       yield item;
-      await Future<void>.delayed(_dripDelay);
     }
   }
 
@@ -107,10 +103,30 @@ class CountdownOpenAIClient implements RankingClient {
     if (rawItems is! List) {
       throw const MalformedResponseError('Missing "items" array.');
     }
-    return rawItems
+    final items = rawItems
         .whereType<Map<String, dynamic>>()
         .map(RankItem.fromJson)
         .toList(growable: false);
+    _logImageUrls(items);
+    return items;
+  }
+
+  /// Debug-only inventory of imageUrls returned by GPT. Helps diagnose
+  /// when the web search is working vs. when the model is null-ing every
+  /// URL. No-op in release.
+  void _logImageUrls(List<RankItem> items) {
+    debugPrint('[openai] ${items.length} items received. imageUrls:');
+    for (final item in items) {
+      final (rank, kind, url) = switch (item) {
+        PlaceItem(:final rank, :final imageUrl) => (rank, 'place', imageUrl),
+        BookItem(:final rank, :final imageUrl) => (rank, 'book', imageUrl),
+        PersonItem(:final rank, :final imageUrl) => (rank, 'person', imageUrl),
+        GenericItem(:final rank, :final imageUrl) => (rank, 'generic', imageUrl),
+      };
+      debugPrint(
+        '[openai]   #${rank.toString().padLeft(2)} ${kind.padRight(8)} → ${url ?? '(null)'}',
+      );
+    }
   }
 
   @override

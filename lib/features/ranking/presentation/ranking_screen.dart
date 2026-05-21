@@ -14,9 +14,11 @@ import 'package:countdown/features/ranking/presentation/widgets/rank_card.dart';
 import 'package:countdown/features/ranking/presentation/widgets/rank_one_reveal.dart';
 import 'package:countdown/features/ranking/presentation/widgets/reveal_animator.dart';
 import 'package:countdown/features/ranking/presentation/widgets/status_sub_header.dart';
+import 'package:countdown/features/share/share_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:screenshot/screenshot.dart';
 
 /// The countdown reveal screen. Watches [rankingControllerProvider] and
 /// kicks off the request on first mount.
@@ -31,6 +33,8 @@ class RankingScreen extends ConsumerStatefulWidget {
 }
 
 class _RankingScreenState extends ConsumerState<RankingScreen> {
+  final ScreenshotController _screenshotController = ScreenshotController();
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +43,17 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
         ref.read(rankingControllerProvider.notifier).ask(widget.query, n: widget.n),
       );
     });
+  }
+
+  Future<void> _handleShare() async {
+    final bytes = await _screenshotController.capture(pixelRatio: 3);
+    if (!mounted || bytes == null) return;
+    try {
+      await ShareService.shareScreenshot(bytes, query: widget.query);
+    } on Object {
+      // User canceled the share sheet, or a platform error fired.
+      // Either way, no UI feedback needed — Share is a passive action.
+    }
   }
 
   @override
@@ -54,24 +69,37 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: ColorTokens.surfaceBase,
-      appBar: _GlassAppBar(query: widget.query, shareEnabled: isDone),
+      appBar: _GlassAppBar(
+        query: widget.query,
+        shareEnabled: isDone,
+        onShare: isDone ? _handleShare : null,
+      ),
       body: Stack(
         children: [
-          _RevealBackgroundGlow(active: isDone || _hasRankOne(items)),
-          ListView(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + kToolbarHeight,
-              left: Spacing.sp4,
-              right: Spacing.sp4,
-              // Reserve room for the sticky _DoneBottomBar (~96pt incl. safe-area).
-              bottom: MediaQuery.of(context).padding.bottom + 96 + Spacing.sp4,
+          // Screenshot wraps just the background + cards so the bottom
+          // bar isn't baked into the shared image.
+          Screenshot(
+            controller: _screenshotController,
+            child: Stack(
+              children: [
+                _RevealBackgroundGlow(active: isDone || _hasRankOne(items)),
+                ListView(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + kToolbarHeight,
+                    left: Spacing.sp4,
+                    right: Spacing.sp4,
+                    // Reserve room for the sticky _DoneBottomBar (~96pt incl. safe-area).
+                    bottom: MediaQuery.of(context).padding.bottom + 96 + Spacing.sp4,
+                  ),
+                  children: [
+                    StatusSubHeader(state: state, targetN: widget.n),
+                    ..._buildSlots(items, state),
+                  ],
+                ),
+              ],
             ),
-            children: [
-              StatusSubHeader(state: state, targetN: widget.n),
-              ..._buildSlots(items, state),
-            ],
           ),
-          if (isDone) const _DoneBottomBar(),
+          if (isDone) _DoneBottomBar(onShare: _handleShare),
         ],
       ),
     );
@@ -134,10 +162,15 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 }
 
 class _GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _GlassAppBar({required this.query, required this.shareEnabled});
+  const _GlassAppBar({
+    required this.query,
+    required this.shareEnabled,
+    this.onShare,
+  });
 
   final String query;
   final bool shareEnabled;
+  final VoidCallback? onShare;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -172,7 +205,7 @@ class _GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: shareEnabled
                   ? ColorTokens.textPrimary
                   : ColorTokens.textTertiary,
-              onPressed: shareEnabled ? () {} : null,
+              onPressed: shareEnabled ? onShare : null,
             ),
           ],
         ),
@@ -211,7 +244,9 @@ class _RevealBackgroundGlow extends StatelessWidget {
 }
 
 class _DoneBottomBar extends ConsumerWidget {
-  const _DoneBottomBar();
+  const _DoneBottomBar({required this.onShare});
+
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -237,7 +272,7 @@ class _DoneBottomBar extends ConsumerWidget {
                     label: 'Share',
                     icon: LucideIcons.share2,
                     filled: true,
-                    onTap: () {},
+                    onTap: onShare,
                   ),
                 ),
                 const SizedBox(width: Spacing.sp3),
@@ -247,8 +282,11 @@ class _DoneBottomBar extends ConsumerWidget {
                     icon: LucideIcons.rotateCw,
                     filled: false,
                     onTap: () {
+                      // Only reset + pop when there's somewhere to go back to.
+                      // Avoids destroying state on a screen that's the root.
+                      if (!Navigator.canPop(context)) return;
                       ref.read(rankingControllerProvider.notifier).reset();
-                      unawaited(Navigator.maybePop(context));
+                      Navigator.of(context).pop();
                     },
                   ),
                 ),

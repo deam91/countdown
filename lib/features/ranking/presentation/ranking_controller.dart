@@ -6,7 +6,9 @@ import 'package:countdown/features/ranking/data/openai_client.dart';
 import 'package:countdown/features/ranking/data/ranking_cache.dart';
 import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/data/ranking_repository.dart';
+import 'package:countdown/features/ranking/data/wikipedia_image_lookup.dart';
 import 'package:countdown/features/ranking/domain/ranking_state.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// ============================================================================
@@ -30,11 +32,24 @@ final rankingCacheProvider = FutureProvider<RankingCache>((ref) {
   return RankingCache.open();
 });
 
-/// Repository — composes the client and cache.
+/// Wikipedia image lookup — single shared instance with its own [Dio].
+/// Stateless; safe to keep alive for the app's lifetime.
+final wikipediaImageLookupProvider = Provider<WikipediaImageLookup>((ref) {
+  final dio = Dio();
+  ref.onDispose(dio.close);
+  return WikipediaImageLookup(dio);
+});
+
+/// Repository — composes client, cache, and image lookup.
 final rankingRepositoryProvider = FutureProvider<RankingRepository>((ref) async {
   final cache = await ref.watch(rankingCacheProvider.future);
   final client = ref.watch(rankingClientProvider);
-  return RankingRepository(client: client, cache: cache);
+  final imageLookup = ref.watch(wikipediaImageLookupProvider);
+  return RankingRepository(
+    client: client,
+    cache: cache,
+    imageLookup: imageLookup,
+  );
 });
 
 /// ============================================================================

@@ -2,6 +2,7 @@ import 'package:countdown/core/errors.dart';
 import 'package:countdown/features/ranking/data/ranking_cache.dart';
 import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/data/ranking_repository.dart';
+import 'package:countdown/features/ranking/data/wikipedia_image_lookup.dart';
 import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:countdown/features/ranking/domain/ranking.dart';
 import 'package:countdown/features/ranking/domain/ranking_state.dart';
@@ -11,6 +12,8 @@ import 'package:mocktail/mocktail.dart';
 class _FakeClient extends Mock implements RankingClient {}
 
 class _FakeCache extends Mock implements RankingCache {}
+
+class _FakeImageLookup extends Mock implements WikipediaImageLookup {}
 
 void main() {
   late _FakeClient client;
@@ -38,11 +41,22 @@ void main() {
     );
   });
 
+  late _FakeImageLookup imageLookup;
+
   setUp(() {
     client = _FakeClient();
     cache = _FakeCache();
-    repo = RankingRepository(client: client, cache: cache);
+    imageLookup = _FakeImageLookup();
+    repo = RankingRepository(
+      client: client,
+      cache: cache,
+      imageLookup: imageLookup,
+    );
     when(() => cache.put(any())).thenAnswer((_) async {});
+    // Pass items through unchanged for tests that don't care about images.
+    when(() => imageLookup.enrichAll(any())).thenAnswer(
+      (inv) async => inv.positionalArguments.first as List<RankItem>,
+    );
   });
 
   test('on cache miss → loading, streaming×N, done', () async {

@@ -20,7 +20,8 @@ class RankingCache {
     return RankingCache._(box);
   }
 
-  static const String _boxName = 'ranking_cache_v1';
+  // v2 = rankings include Wikipedia-enriched imageUrls.
+  static const String _boxName = 'ranking_cache_v2';
   static const int _maxEntries = 50;
 
   final Box<String> _box;
