@@ -86,8 +86,9 @@ class _RankOneRevealState extends State<RankOneReveal>
           clipBehavior: Clip.none,
           children: [
             widget.child,
-            if (_showConfetti)
-              const Positioned(left: 40, top: 20, child: ConfettiBurst()),
+            // Span the card so ConfettiBurst can anchor its two emitters
+            // at the card's bottom-left and bottom-right corners.
+            if (_showConfetti) const Positioned.fill(child: ConfettiBurst()),
           ],
         ),
       ),

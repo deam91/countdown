@@ -20,8 +20,9 @@ class RankingCache {
     return RankingCache._(box);
   }
 
-  // v2 = rankings include Wikipedia-enriched imageUrls.
-  static const String _boxName = 'ranking_cache_v2';
+  // v3 = enrichment uses batched concurrency + 429 retry, so cached
+  // imageUrls reflect that hit rate rather than the burst-throttled mess.
+  static const String _boxName = 'ranking_cache_v3';
   static const int _maxEntries = 50;
 
   final Box<String> _box;

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 
 /// Looks up a thumbnail image for each item from Wikipedia.
@@ -20,6 +21,21 @@ class WikipediaImageLookup {
     // descriptive User-Agent identifying the app.
     // https://meta.wikimedia.org/wiki/User-Agent_policy
     _dio.options.headers['User-Agent'] = 'CountdownApp/1.0 (Flutter; Dart/Dio)';
+
+    // Even with a polite User-Agent, a burst of 20 parallel HTTPS hits
+    // can trip the rate limiter. Auto-retry 429s with backoff so the
+    // hit rate isn't sacrificed for speed.
+    _dio.interceptors.add(
+      RetryInterceptor(
+        dio: _dio,
+        retries: 2,
+        retryDelays: const [
+          Duration(milliseconds: 500),
+          Duration(milliseconds: 1500),
+        ],
+        retryableExtraStatuses: const {429},
+      ),
+    );
   }
 
   final Dio _dio;
@@ -30,11 +46,20 @@ class WikipediaImageLookup {
       'https://en.wikipedia.org/api/rest_v1/page/summary/';
   static const Duration _perLookupTimeout = Duration(seconds: 3);
 
-  /// Enriches all items in parallel. Returns new instances with
-  /// `imageUrl` set where a thumbnail was found; otherwise the original
-  /// item is returned unchanged.
+  /// Enriches all items sequentially. ~300ms per item × 10 = ~3s total.
+  ///
+  /// Why not parallel: Wikipedia's REST API rate-limits per-IP at the
+  /// MediaWiki edge. Even batches of 2 with retry-on-429 still tripped
+  /// the limiter because retries stack — multiple in-flight requests
+  /// that 429'd all retry at the same backoff moment, hammering the
+  /// limit again. One-at-a-time eliminates the burst entirely and stays
+  /// well under the threshold.
   Future<List<RankItem>> enrichAll(List<RankItem> items) async {
-    return Future.wait(items.map(_enrichOne));
+    final out = <RankItem>[];
+    for (final item in items) {
+      out.add(await _enrichOne(item));
+    }
+    return out;
   }
 
   Future<RankItem> _enrichOne(RankItem item) async {
