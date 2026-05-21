@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:countdown/core/errors.dart';
 import 'package:countdown/features/ranking/data/prompt_builder.dart';
+import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:openai_dart/openai_dart.dart';
 
@@ -14,7 +15,7 @@ import 'package:openai_dart/openai_dart.dart';
 /// but we drip items out one-by-one with a small delay so the countdown
 /// reveal animation has time to play. A future upgrade is to tolerantly
 /// parse the streaming JSON for true item-by-item streaming — see IDEA.md §7.
-class CountdownOpenAIClient {
+class CountdownOpenAIClient implements RankingClient {
   CountdownOpenAIClient({
     required String apiKey,
     this._model = 'gpt-4o-mini',
@@ -32,6 +33,7 @@ class CountdownOpenAIClient {
   /// Throws an [AppError] on any failure. Cancelling the subscription
   /// stops the drip but does not abort the in-flight HTTP request
   /// (the request is short — typically <3s).
+  @override
   Stream<RankItem> rank({
     required String query,
     int n = 10,
@@ -111,5 +113,6 @@ class CountdownOpenAIClient {
         .toList(growable: false);
   }
 
+  @override
   void dispose() => _client.close();
 }

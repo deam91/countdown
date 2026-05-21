@@ -483,6 +483,7 @@ What's actually scaffolded as of the last commit. Update this section as work pr
 - ✅ **iOS native config** — Podfile pinned iOS 14, Info.plist (portrait, dark, mic/speech/photos permissions), `pod install` (8 pods).
 - ✅ **App icon + native splash** — generated from `assets/logo.png` via `flutter_launcher_icons` + `flutter_native_splash`.
 - ✅ **Git** — repo on `main`, scaffold commit `a013059`.
+- ✅ **`RankingClient` interface** (`ranking_client.dart`) — abstraction over "produce a stream of ranked items." Implementations: `CountdownOpenAIClient` (real OpenAI) and `SeedRankingClient` (10 curated fixture items, gated by `--dart-define=SEED_MODE=true` — never wired into release builds).
 - ✅ **OpenAI client wrapper** (`openai_client.dart`) — wraps `openai_dart` 5.x, builds JSON schema for the sealed `RankItem` union, streams items as `Stream<RankItem>`, maps SDK exceptions to typed `AppError`s.
 - ✅ **Ranking cache** (`ranking_cache.dart`) — `hive_ce`-backed, LRU 50, normalized query key, JSON encoding.
 - ✅ **Ranking repository** (`ranking_repository.dart`) — cache-first; on miss → OpenAI stream → persist; on hit → re-emit with drip cadence so the reveal animation still plays. State machine: `loading → streaming → done | error`.

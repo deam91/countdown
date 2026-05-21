@@ -1,6 +1,6 @@
 import 'package:countdown/core/errors.dart';
-import 'package:countdown/features/ranking/data/openai_client.dart';
 import 'package:countdown/features/ranking/data/ranking_cache.dart';
+import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/data/ranking_repository.dart';
 import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:countdown/features/ranking/domain/ranking.dart';
@@ -8,7 +8,7 @@ import 'package:countdown/features/ranking/domain/ranking_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _FakeClient extends Mock implements CountdownOpenAIClient {}
+class _FakeClient extends Mock implements RankingClient {}
 
 class _FakeCache extends Mock implements RankingCache {}
 

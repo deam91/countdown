@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:countdown/core/errors.dart';
-import 'package:countdown/features/ranking/data/openai_client.dart';
 import 'package:countdown/features/ranking/data/ranking_cache.dart';
+import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:countdown/features/ranking/domain/ranking.dart';
 import 'package:countdown/features/ranking/domain/ranking_state.dart';
@@ -15,7 +15,7 @@ class RankingRepository {
     required this._cache,
   });
 
-  final CountdownOpenAIClient _client;
+  final RankingClient _client;
   final RankingCache _cache;
 
   /// Drives the state machine for a ranking request.

@@ -79,6 +79,12 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   List<Widget> _buildSlots(List<RankItem> items, RankingState state) {
     final children = <Widget>[];
 
+    // Error replaces the list entirely.
+    if (state is RankingError) {
+      children.add(_ErrorPanel(error: state.error.message));
+      return children;
+    }
+
     // Reveal in countdown order — items already arrive in rank N → rank 1
     // order from the data layer, so we render them in arrival order.
     for (var i = 0; i < items.length; i++) {
@@ -106,18 +112,17 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
         ..add(const SizedBox(height: Spacing.sp3));
     }
 
-    // Skeletons for un-arrived slots.
-    final remaining = state is RankingDone
-        ? 0
-        : (widget.n - items.length).clamp(0, widget.n);
+    // Skeletons for un-arrived slots (only when loading / streaming).
+    final remaining = switch (state) {
+      RankingLoading() ||
+      RankingStreaming() =>
+        (widget.n - items.length).clamp(0, widget.n),
+      _ => 0,
+    };
     for (var i = 0; i < remaining; i++) {
       children
         ..add(const CardSkeleton())
         ..add(const SizedBox(height: Spacing.sp3));
-    }
-
-    if (state is RankingError) {
-      children.add(_ErrorPanel(error: state.error.message));
     }
 
     return children;
