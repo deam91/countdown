@@ -480,12 +480,18 @@ What's actually scaffolded as of the last commit. Update this section as work pr
 - ✅ **Theme tokens** — full port from `design/tokens.css` into `lib/core/theme/*` (colors, type, spacing, radii, motion, tier styles, M3 dark theme).
 - ✅ **Models** — `RankItem` sealed union (place/book/person/generic), `Ranking`, `RankingState` (idle/loading/streaming/done/error). Freezed codegen written.
 - ✅ **Core utilities** — `env.dart` (with FIND-ME marker), `errors.dart` (sealed `AppError` union), `result.dart` (`Result<T>` w/ exhaustive `.when`).
-- ✅ **Smoke test** — `CountdownApp boots` passes.
-- ⬜ **OpenAI client wrapper** (`openai_client.dart` — `Stream<RankItem>`).
-- ⬜ **Ranking cache** (`ranking_cache.dart` — hive_ce, LRU 50).
-- ⬜ **Ranking repository** (cache-first + OpenAI fallback).
+- ✅ **iOS native config** — Podfile pinned iOS 14, Info.plist (portrait, dark, mic/speech/photos permissions), `pod install` (8 pods).
+- ✅ **App icon + native splash** — generated from `assets/logo.png` via `flutter_launcher_icons` + `flutter_native_splash`.
+- ✅ **Git** — repo on `main`, scaffold commit `a013059`.
+- ✅ **OpenAI client wrapper** (`openai_client.dart`) — wraps `openai_dart` 5.x, builds JSON schema for the sealed `RankItem` union, streams items as `Stream<RankItem>`, maps SDK exceptions to typed `AppError`s.
+- ✅ **Ranking cache** (`ranking_cache.dart`) — `hive_ce`-backed, LRU 50, normalized query key, JSON encoding.
+- ✅ **Ranking repository** (`ranking_repository.dart`) — cache-first; on miss → OpenAI stream → persist; on hit → re-emit with drip cadence so the reveal animation still plays. State machine: `loading → streaming → done | error`.
+- ✅ **Ranking controller** (`ranking_controller.dart`) — Riverpod `Notifier<RankingState>` with cancellation on new query and dispose-time cleanup.
+- ✅ **Riverpod providers** — manual `Provider`/`FutureProvider`/`NotifierProvider` for client / cache / repository / controller.
+- ✅ **Tests (data + domain)** — 4 parser tests + 4 repository state-transition tests + 1 widget smoke = **9 passing**. `flutter analyze` clean under `very_good_analysis`.
 - ⬜ **Search screen / Ranking screen / Detail / Share / Error screens**.
-- ⬜ **Tests** (schema parser, repo, widget per kind, golden top-3).
+- ⬜ **Image enrichment** (`image_enricher.dart` — Unsplash fire-and-forget).
+- ⬜ **Widget + golden tests** (one per card kind, gold top-3 golden).
 - ⬜ **README + demo recording**.
 
 ---
