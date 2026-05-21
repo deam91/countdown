@@ -10,8 +10,8 @@ import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:countdown/features/ranking/domain/ranking_state.dart';
 import 'package:countdown/features/ranking/presentation/ranking_controller.dart';
 import 'package:countdown/features/ranking/presentation/widgets/card_skeleton.dart';
-import 'package:countdown/features/ranking/presentation/widgets/confetti_burst.dart';
 import 'package:countdown/features/ranking/presentation/widgets/rank_card.dart';
+import 'package:countdown/features/ranking/presentation/widgets/rank_one_reveal.dart';
 import 'package:countdown/features/ranking/presentation/widgets/reveal_animator.dart';
 import 'package:countdown/features/ranking/presentation/widgets/status_sub_header.dart';
 import 'package:flutter/material.dart';
@@ -85,29 +85,23 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
       return children;
     }
 
-    // Reveal in countdown order — items already arrive in rank N → rank 1
-    // order from the data layer, so we render them in arrival order.
+    // Reveal in countdown order — items arrive rank N → rank 1 from the
+    // data layer; we keep that vertical order so the user scrolls down to
+    // discover #1. #1 gets its own widget that defers reveal + confetti
+    // until it actually enters the viewport.
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
       final rank = _rankOf(item);
+      final card = RankCard(item: item);
       children
         ..add(
-          RevealAnimator(
-            key: ValueKey('rank-$rank'),
-            rank: rank,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                RankCard(item: item),
-                if (rank == 1)
-                  const Positioned(
-                    left: 40,
-                    top: 20,
-                    child: ConfettiBurst(),
-                  ),
-              ],
-            ),
-          ),
+          rank == 1
+              ? RankOneReveal(key: const ValueKey('rank-1'), child: card)
+              : RevealAnimator(
+                  key: ValueKey('rank-$rank'),
+                  rank: rank,
+                  child: card,
+                ),
         )
         ..add(const SizedBox(height: Spacing.sp3));
     }

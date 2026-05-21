@@ -40,6 +40,7 @@ dependencies:
   # Animation
   flutter_animate: ^4.5.2
   confetti: ^0.8.0
+  visibility_detector: ^0.4.0+2
 
   # Share
   screenshot: ^3.0.0
