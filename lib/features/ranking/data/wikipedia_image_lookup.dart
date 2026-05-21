@@ -5,15 +5,18 @@ import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 
-/// Looks up a thumbnail image for each item from Wikipedia.
+/// Pulls a thumbnail (and, for places, real coordinates) from Wikipedia
+/// for each ranked item. Free, no auth, CORS-friendly.
 ///
-/// Uses MediaWiki's combined search + pageimages endpoint so a single
-/// HTTP call per item resolves the best-matching Wikipedia page AND
-/// returns its 300px thumbnail. Free, no auth, CORS-friendly.
+/// Two-step REST per item:
+///   1. `/w/rest.php/v1/search/page?q={title}&limit=1` resolves the
+///      actual Wikipedia page title (handles disambiguation, e.g.
+///      "Hereditary" → "Hereditary (film)").
+///   2. `/api/rest_v1/page/summary/{title}` returns `thumbnail.source`
+///      and, for pages with infobox coordinates, `coordinates.{lat,lon}`.
 ///
-/// Items whose title has no Wikipedia match (or no thumbnail) come back
-/// unchanged — the kind-specific placeholder icon in `RankCard` then
-/// reads as a deliberate "no image" rather than a broken URL.
+/// Items with no Wikipedia match come back unchanged. Place items keep
+/// the model's `lat`/`lng` when Wikipedia doesn't have coordinates.
 class WikipediaImageLookup {
   WikipediaImageLookup(this._dio) {
     // Wikipedia's REST API aggressively rate-limits unidentified clients
@@ -22,9 +25,6 @@ class WikipediaImageLookup {
     // https://meta.wikimedia.org/wiki/User-Agent_policy
     _dio.options.headers['User-Agent'] = 'CountdownApp/1.0 (Flutter; Dart/Dio)';
 
-    // Even with a polite User-Agent, a burst of 20 parallel HTTPS hits
-    // can trip the rate limiter. Auto-retry 429s with backoff so the
-    // hit rate isn't sacrificed for speed.
     _dio.interceptors.add(
       RetryInterceptor(
         dio: _dio,
@@ -47,13 +47,8 @@ class WikipediaImageLookup {
   static const Duration _perLookupTimeout = Duration(seconds: 3);
 
   /// Enriches all items sequentially. ~300ms per item × 10 = ~3s total.
-  ///
-  /// Why not parallel: Wikipedia's REST API rate-limits per-IP at the
-  /// MediaWiki edge. Even batches of 2 with retry-on-429 still tripped
-  /// the limiter because retries stack — multiple in-flight requests
-  /// that 429'd all retry at the same backoff moment, hammering the
-  /// limit again. One-at-a-time eliminates the burst entirely and stays
-  /// well under the threshold.
+  /// Parallel was attempted and tripped Wikipedia's 429 limiter; retries
+  /// stacked and re-hit the limit at every backoff moment.
   Future<List<RankItem>> enrichAll(List<RankItem> items) async {
     final out = <RankItem>[];
     for (final item in items) {
@@ -65,29 +60,26 @@ class WikipediaImageLookup {
   Future<RankItem> _enrichOne(RankItem item) async {
     final title = _titleOf(item);
     try {
-      final url = await _lookup(title).timeout(_perLookupTimeout);
-      if (url == null) {
+      final summary = await _lookup(title).timeout(_perLookupTimeout);
+      if (summary == null || summary.isEmpty) {
         debugPrint('[wiki] miss: $title');
         return item;
       }
-      debugPrint('[wiki] hit:  $title → $url');
-      return _withImageUrl(item, url);
+      debugPrint(
+        '[wiki] hit:  $title → ${summary.imageUrl ?? "(no thumb)"} '
+        '${summary.lat != null ? "[${summary.lat}, ${summary.lon}]" : ""}',
+      );
+      return _apply(item, summary);
     } on Object catch (e) {
       debugPrint('[wiki] err:  $title → $e');
       return item;
     }
   }
 
-  /// Two-step lookup:
-  ///   1. REST search to resolve the actual Wikipedia page title
-  ///      (handles disambiguation, e.g. "Hereditary" → "Hereditary (film)").
-  ///   2. REST summary on that title to get the thumbnail URL.
-  ///
-  /// Both endpoints are unauthenticated and CORS-friendly.
-  Future<String?> _lookup(String title) async {
+  Future<_WikiSummary?> _lookup(String title) async {
     final resolvedTitle = await _resolveTitle(title);
     if (resolvedTitle == null) return null;
-    return _summaryThumbnail(resolvedTitle);
+    return _fetchSummary(resolvedTitle);
   }
 
   Future<String?> _resolveTitle(String query) async {
@@ -103,15 +95,48 @@ class WikipediaImageLookup {
     return t is String && t.isNotEmpty ? t : null;
   }
 
-  Future<String?> _summaryThumbnail(String title) async {
+  Future<_WikiSummary> _fetchSummary(String title) async {
     final encoded = Uri.encodeComponent(title.replaceAll(' ', '_'));
     final response = await _dio.get<Map<String, dynamic>>(
       '$_summaryEndpoint$encoded',
     );
-    final thumb = response.data?['thumbnail'];
-    if (thumb is! Map<String, dynamic>) return null;
-    final source = thumb['source'];
-    return source is String && source.isNotEmpty ? source : null;
+    final data = response.data;
+
+    String? imageUrl;
+    final thumb = data?['thumbnail'];
+    if (thumb is Map<String, dynamic>) {
+      final source = thumb['source'];
+      if (source is String && source.isNotEmpty) imageUrl = source;
+    }
+
+    double? lat;
+    double? lon;
+    final coords = data?['coordinates'];
+    if (coords is Map<String, dynamic>) {
+      final rawLat = coords['lat'];
+      final rawLon = coords['lon'];
+      if (rawLat is num) lat = rawLat.toDouble();
+      if (rawLon is num) lon = rawLon.toDouble();
+    }
+
+    return _WikiSummary(imageUrl: imageUrl, lat: lat, lon: lon);
+  }
+
+  RankItem _apply(RankItem item, _WikiSummary s) {
+    switch (item) {
+      case final PlaceItem i:
+        return i.copyWith(
+          imageUrl: s.imageUrl ?? i.imageUrl,
+          lat: s.lat ?? i.lat,
+          lng: s.lon ?? i.lng,
+        );
+      case final BookItem i:
+        return s.imageUrl == null ? i : i.copyWith(imageUrl: s.imageUrl);
+      case final PersonItem i:
+        return s.imageUrl == null ? i : i.copyWith(imageUrl: s.imageUrl);
+      case final GenericItem i:
+        return s.imageUrl == null ? i : i.copyWith(imageUrl: s.imageUrl);
+    }
   }
 
   String _titleOf(RankItem item) => switch (item) {
@@ -120,11 +145,13 @@ class WikipediaImageLookup {
         PersonItem(:final title) => title,
         GenericItem(:final title) => title,
       };
+}
 
-  RankItem _withImageUrl(RankItem item, String url) => switch (item) {
-        final PlaceItem i => i.copyWith(imageUrl: url),
-        final BookItem i => i.copyWith(imageUrl: url),
-        final PersonItem i => i.copyWith(imageUrl: url),
-        final GenericItem i => i.copyWith(imageUrl: url),
-      };
+class _WikiSummary {
+  const _WikiSummary({this.imageUrl, this.lat, this.lon});
+  final String? imageUrl;
+  final double? lat;
+  final double? lon;
+
+  bool get isEmpty => imageUrl == null && lat == null && lon == null;
 }

@@ -18,9 +18,16 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class RankCard extends StatelessWidget {
   const RankCard({required this.item, super.key});
 
-  /// Shared by [RankCard] and `CardSkeleton` so the layout doesn't jump
-  /// as items stream in to replace skeleton slots.
+  /// Base card height used by `CardSkeleton` and non-place items.
   static const double height = 160;
+
+  /// Place cards need extra room for the 40pt map strip below the
+  /// address row. Skeleton stays at the base height — a small ~20pt
+  /// jump on arrival is acceptable for a place-only minority of cards.
+  static const double placeHeight = 180;
+
+  static double heightFor(RankItem item) =>
+      item is PlaceItem ? placeHeight : height;
 
   final RankItem item;
 
@@ -60,7 +67,7 @@ class RankCard extends StatelessWidget {
             ),
           ),
           child: Container(
-            height: RankCard.height,
+            height: RankCard.heightFor(item),
             decoration: BoxDecoration(
               borderRadius: Radii.cardRadius,
               border: isTopThree
@@ -306,33 +313,36 @@ class _KindImage extends StatelessWidget {
     };
 
     final fallback = _PlaceholderFill(kind: item);
+    final hasImage = url != null && url.isNotEmpty;
 
-    return Hero(
-      tag: 'rank-image-$_rank',
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: ColorTokens.surfaceOutline50),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(radius),
-          child: url == null || url.isEmpty
-              ? fallback
-              : CachedNetworkImage(
-                  imageUrl: url,
-                  fit: BoxFit.cover,
-                  fadeInDuration: const Duration(milliseconds: 200),
-                  placeholder: (_, _) => fallback,
-                  errorWidget: (_, failedUrl, error) {
-                    debugPrint('[img] failed: $failedUrl ($error)');
-                    return fallback;
-                  },
-                ),
-        ),
+    final box = Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: ColorTokens.surfaceOutline50),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: hasImage
+            ? CachedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.cover,
+                fadeInDuration: const Duration(milliseconds: 200),
+                placeholder: (_, _) => fallback,
+                errorWidget: (_, failedUrl, error) {
+                  debugPrint('[img] failed: $failedUrl ($error)');
+                  return fallback;
+                },
+              )
+            : fallback,
       ),
     );
+
+    // Only wrap in Hero when we actually have an image to animate. The
+    // placeholder fallback doesn't transition nicely into the detail
+    // screen's tier-numeral poster.
+    return hasImage ? Hero(tag: 'rank-image-$_rank', child: box) : box;
   }
 }
 

@@ -11,6 +11,7 @@ import 'package:countdown/features/ranking/presentation/widgets/rank_card.dart' 
 import 'package:countdown/features/ranking/presentation/widgets/tier_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -63,7 +64,6 @@ class DetailScreen extends StatelessWidget {
     final tier = TierStyles.forRank(_rank);
     return Scaffold(
       backgroundColor: ColorTokens.surfaceBase,
-      extendBodyBehindAppBar: true,
       appBar: const _GlassBar(),
       body: ListView(
         padding: EdgeInsets.zero,
@@ -118,66 +118,53 @@ class _Hero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            ColorTokens.brandPrimaryContainer.withValues(alpha: 0.7),
-            ColorTokens.surfaceElevated,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          LucideIcons.image,
-          size: 48,
-          color: ColorTokens.textTertiary.withValues(alpha: 0.6),
-        ),
-      ),
-    );
+    // When the item has no Wikipedia thumbnail, render an intentional
+    // "poster" — a huge tier-colored Fraunces numeral over the surface
+    // gradient. Reads as deliberate art, not a broken image.
+    final fallback = _NoImagePoster(rank: rank, tier: tier);
 
-    return Hero(
-      tag: 'rank-image-$rank',
-      child: SizedBox(
-        height: _height,
-        width: double.infinity,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (imageUrl != null && imageUrl!.isNotEmpty)
-              CachedNetworkImage(
-                imageUrl: imageUrl!,
-                fit: BoxFit.cover,
-                placeholder: (_, _) => fallback,
-                errorWidget: (_, _, _) => fallback,
-              )
-            else
-              fallback,
-            // Bottom gradient fade into surface.base so the title row
-            // below reads cleanly.
-            const Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: [0.55, 1.0],
-                      colors: [
-                        Colors.transparent,
-                        ColorTokens.surfaceBase,
-                      ],
-                    ),
+    final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
+    final content = SizedBox(
+      height: _height,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (hasImage)
+            CachedNetworkImage(
+              imageUrl: imageUrl!,
+              fit: BoxFit.cover,
+              placeholder: (_, _) => fallback,
+              errorWidget: (_, _, _) => fallback,
+            )
+          else
+            fallback,
+          // Bottom gradient fade into surface.base so the title row
+          // below reads cleanly.
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [0.55, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      ColorTokens.surfaceBase,
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+
+    // Only animate when an image is present — the no-image poster
+    // doesn't transition nicely from the card's small placeholder.
+    return hasImage ? Hero(tag: 'rank-image-$rank', child: content) : content;
   }
 }
 
@@ -373,6 +360,55 @@ class _LinkChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Fallback for the Detail hero when an item has no Wikipedia thumbnail.
+/// A subtle purple-tinted gradient with a massive Fraunces rank numeral
+/// centered — tier-gradient-filled on top-3. Reads as deliberate poster
+/// art rather than a broken-image placeholder.
+class _NoImagePoster extends StatelessWidget {
+  const _NoImagePoster({required this.rank, required this.tier});
+
+  final int rank;
+  final Tier tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final numeralStyle = GoogleFonts.fraunces(
+      fontSize: 220,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -8,
+      height: 0.9,
+      color: ColorTokens.textPrimary,
+    );
+
+    Widget numeral = Text(
+      '$rank',
+      style: numeralStyle,
+      textAlign: TextAlign.center,
+    );
+    if (tier != Tier.neutral) {
+      numeral = ShaderMask(
+        shaderCallback: (r) => TierStyles.gradient(tier).createShader(r),
+        blendMode: BlendMode.srcIn,
+        child: numeral,
+      );
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            ColorTokens.brandPrimaryContainer.withValues(alpha: 0.5),
+            ColorTokens.surfaceElevated,
+          ],
+        ),
+      ),
+      child: Center(child: numeral),
     );
   }
 }
