@@ -53,7 +53,7 @@ void main() {
     final states = await repo.ranking(query: 'top 2 things').toList();
 
     expect(states.first, isA<RankingLoading>());
-    expect(states.where((s) => s is RankingStreaming).length, items.length);
+    expect(states.whereType<RankingStreaming>().length, items.length);
     expect(states.last, isA<RankingDone>());
     final done = states.last as RankingDone;
     expect(done.ranking.items.length, 2);

@@ -489,7 +489,18 @@ What's actually scaffolded as of the last commit. Update this section as work pr
 - ✅ **Ranking controller** (`ranking_controller.dart`) — Riverpod `Notifier<RankingState>` with cancellation on new query and dispose-time cleanup.
 - ✅ **Riverpod providers** — manual `Provider`/`FutureProvider`/`NotifierProvider` for client / cache / repository / controller.
 - ✅ **Tests (data + domain)** — 4 parser tests + 4 repository state-transition tests + 1 widget smoke = **9 passing**. `flutter analyze` clean under `very_good_analysis`.
-- ⬜ **Search screen / Ranking screen / Detail / Share / Error screens**.
+- ✅ **Ranking screen** (`ranking_screen.dart`) — the centerpiece.
+  - Glass-frosted sticky app bar (back, italic query title, share enabled-when-done).
+  - Status sub-header with animated dots and `Revealing X of N…` caption.
+  - 10-slot `ListView` with `CardSkeleton` shimmer placeholders for unarrived items.
+  - `RankCard` with kind-aware variants (PlaceCard with `MapPin` + address, BookCard with author/year, PersonCard with italic tagline, GenericItem fallback).
+  - Top-3 tier styling: gold/silver/bronze gradient ring + outer glow + `TierBadge` pill + `ShaderMask` gradient-filled `RankNumeral` in Fraunces.
+  - `ScoreBar` animated 4px fill over 280ms.
+  - `RevealAnimator` per card: opacity/scale/blur with light haptic; #1 uses 700ms dramatic curve + medium haptic.
+  - `ConfettiBurst` (gold + tertiary) overlaid on #1; subtle warm radial background glow when #1 lands.
+  - `_DoneBottomBar` (glass-frosted) with `Share` and `Ask another` pills.
+  - Wired through `rankingControllerProvider`; temporary `_DevHome` entry point in `app.dart`.
+- ⬜ **Search screen / Detail / Share / Error screens**.
 - ⬜ **Image enrichment** (`image_enricher.dart` — Unsplash fire-and-forget).
 - ⬜ **Widget + golden tests** (one per card kind, gold top-3 golden).
 - ⬜ **README + demo recording**.
