@@ -18,7 +18,12 @@ Rules:
 - `rank` is 1..$n (1 = best).
 - `score` is 0..10, two decimals.
 - `whyItRanks` is ONE sentence, max 100 characters, no period at the end.
-- `imageUrl` should be null unless you are confident in a stable URL — the client will fetch images separately.
+- `imageUrl` MUST be a publicly-accessible HTTPS image URL that visually represents this item:
+  - For books: cover image (Open Library covers like `https://covers.openlibrary.org/b/isbn/<isbn>-L.jpg`, Wikipedia, Goodreads CDN, or the publisher).
+  - For people: portrait or representative photo (Wikipedia Commons preferred, e.g. `https://upload.wikimedia.org/wikipedia/commons/...`).
+  - For places: a recognizable photo of the location (Wikipedia Commons, official tourism sites).
+  - For generic items: a relevant photo (Wikipedia Commons preferred).
+  Prefer Wikipedia Commons URLs because they are stable and CORS-friendly. Never invent paths — if you are not confident a URL exists, use null.
 - Return ONLY the JSON object, no preamble or commentary.
 ''';
 

@@ -6,7 +6,6 @@ import 'package:countdown/features/ranking/data/openai_client.dart';
 import 'package:countdown/features/ranking/data/ranking_cache.dart';
 import 'package:countdown/features/ranking/data/ranking_client.dart';
 import 'package:countdown/features/ranking/data/ranking_repository.dart';
-import 'package:countdown/features/ranking/data/seed_ranking_client.dart';
 import 'package:countdown/features/ranking/domain/ranking_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,14 +13,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Providers (manual — see CLAUDE.md "State" section for why we dropped codegen)
 /// ============================================================================
 
-/// Singleton ranking client. [SeedRankingClient] in dev fixture mode,
-/// real [CountdownOpenAIClient] otherwise. Disposed on tear-down.
+/// Singleton ranking client (always real OpenAI). Disposed on tear-down.
 final rankingClientProvider = Provider<RankingClient>((ref) {
-  if (Env.seedMode) {
-    final client = SeedRankingClient();
-    ref.onDispose(client.dispose);
-    return client;
-  }
   if (!Env.hasOpenAiKey) {
     throw const AuthError(
       'OPENAI_API_KEY missing — set via --dart-define at run time.',

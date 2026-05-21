@@ -5,10 +5,9 @@ FLUTTER := fvm flutter
 DART    := fvm dart
 
 # Compile-time env. Override on the command line:
-#   make run OPENAI_API_KEY=sk-... UNSPLASH_ACCESS_KEY=...
-OPENAI_API_KEY      ?=
-UNSPLASH_ACCESS_KEY ?=
-DEFINES := --dart-define=OPENAI_API_KEY=$(OPENAI_API_KEY) --dart-define=UNSPLASH_ACCESS_KEY=$(UNSPLASH_ACCESS_KEY)
+#   make run OPENAI_API_KEY=sk-...
+OPENAI_API_KEY ?=
+DEFINES := --dart-define=OPENAI_API_KEY=$(OPENAI_API_KEY)
 
 help:
 	@echo "Targets:"

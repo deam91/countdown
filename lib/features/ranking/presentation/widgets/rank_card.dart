@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:countdown/core/theme/color_tokens.dart';
 import 'package:countdown/core/theme/radii.dart';
 import 'package:countdown/core/theme/spacing.dart';
@@ -262,8 +263,9 @@ class _SubLine extends StatelessWidget {
   }
 }
 
-/// Image with a kind-shaped frame. Until image_enricher lands, shows
-/// a tinted gradient placeholder.
+/// Image with a kind-shaped frame. Loads the OpenAI-provided `imageUrl`
+/// via `CachedNetworkImage`. Falls back to a tinted gradient + kind icon
+/// when the URL is null, still loading, or fails to load.
 class _KindImage extends StatelessWidget {
   const _KindImage({required this.item});
   final RankItem item;
@@ -272,30 +274,57 @@ class _KindImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shape = switch (item) {
-      BookItem() => const _ImageShape(width: 72, height: _size, radius: Radii.image),
-      PersonItem() => const _ImageShape(width: _size, height: _size, radius: 999),
-      _ => const _ImageShape(width: _size, height: _size, radius: Radii.image),
+    final (width, height, radius) = switch (item) {
+      BookItem() => (72.0, _size, Radii.image),
+      PersonItem() => (_size, _size, 999.0),
+      _ => (_size, _size, Radii.image),
     };
-    return shape;
-  }
-}
 
-class _ImageShape extends StatelessWidget {
-  const _ImageShape({
-    required this.width,
-    required this.height,
-    required this.radius,
-  });
-  final double width;
-  final double height;
-  final double radius;
+    final url = switch (item) {
+      PlaceItem(:final imageUrl) => imageUrl,
+      BookItem(:final imageUrl) => imageUrl,
+      PersonItem(:final imageUrl) => imageUrl,
+      GenericItem(:final imageUrl) => imageUrl,
+    };
 
-  @override
-  Widget build(BuildContext context) {
+    final fallback = _PlaceholderFill(kind: item);
+
     return Container(
       width: width,
       height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: ColorTokens.surfaceOutline50),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: url == null || url.isEmpty
+            ? fallback
+            : CachedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.cover,
+                fadeInDuration: const Duration(milliseconds: 200),
+                placeholder: (_, _) => fallback,
+                errorWidget: (_, _, _) => fallback,
+              ),
+      ),
+    );
+  }
+}
+
+class _PlaceholderFill extends StatelessWidget {
+  const _PlaceholderFill({required this.kind});
+  final RankItem kind;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (kind) {
+      PlaceItem() => LucideIcons.mapPin,
+      BookItem() => LucideIcons.bookOpen,
+      PersonItem() => LucideIcons.user,
+      GenericItem() => LucideIcons.image,
+    };
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -305,8 +334,9 @@ class _ImageShape extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: ColorTokens.surfaceOutline50),
+      ),
+      child: Center(
+        child: Icon(icon, size: 28, color: ColorTokens.textTertiary),
       ),
     );
   }

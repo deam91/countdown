@@ -63,7 +63,8 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
               top: MediaQuery.of(context).padding.top + kToolbarHeight,
               left: Spacing.sp4,
               right: Spacing.sp4,
-              bottom: Spacing.sp12 + Spacing.sp8,
+              // Reserve room for the sticky _DoneBottomBar (~96pt incl. safe-area).
+              bottom: MediaQuery.of(context).padding.bottom + 96 + Spacing.sp4,
             ),
             children: [
               StatusSubHeader(state: state, targetN: widget.n),
