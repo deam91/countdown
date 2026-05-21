@@ -9,6 +9,7 @@ import 'package:countdown/features/ranking/domain/rank_item.dart';
 import 'package:countdown/features/ranking/presentation/widgets/place_map_strip.dart';
 import 'package:countdown/features/ranking/presentation/widgets/rank_numeral.dart';
 import 'package:countdown/features/ranking/presentation/widgets/score_bar.dart';
+import 'package:countdown/features/ranking/presentation/widgets/star_rating.dart';
 import 'package:countdown/features/ranking/presentation/widgets/tier_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -215,7 +216,13 @@ class _CardBody extends StatelessWidget {
           softWrap: true,
         ),
         const SizedBox(height: Spacing.sp2),
-        ScoreBar(score: _score(item), tier: tier),
+        // Books get 5 stars, everything else gets the 4px score bar.
+        // Stars feel native to "rate this book"; the bar reads more
+        // generically for places / people / topics.
+        if (item is BookItem)
+          StarRating(score: _score(item), tier: tier)
+        else
+          ScoreBar(score: _score(item), tier: tier),
       ],
     );
   }

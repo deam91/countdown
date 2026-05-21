@@ -148,11 +148,11 @@ Scale (semantic):
   - Left strip (80dp wide): the rank numeral in Fraunces (`display.l` for top-3, `display.m` otherwise). Behind the numeral is a vertical gradient bar of the tier color (top-3) or `brand.primary @ 30%` (others).
   - Right area: image (96×96 rounded 12) on the right; title + author/tagline/address + score bar on the left of the image.
   - Tier badge (gold/silver/bronze) sits as a small pill above the title on top-3 only.
-  - Score bar: 4px tall, animated fill from 0 to actual score with `motion.standard`, colored by tier (or `brand.primary`).
+  - Score bar: 4px tall, animated fill from 0 to actual score with `motion.standard`, colored by tier (or `brand.primary`). **BookCard substitutes a 5-star row** for the score bar — see per-card variants below.
   - "Why it ranks": one-line truncated description in `body.m / text.secondary`, fades to gradient at the end if truncated.
 - **Per-card variant detail:**
   - **PlaceCard:** below the title row, an embedded 56dp-tall map strip (OpenStreetMap tile) with a single purple pin. Tap → detail with full map.
-  - **BookCard:** image is the book cover (3:4 ratio override); below title shows "by {author} · {year}" + stars.
+  - **BookCard:** image is the book cover (3:4 ratio override); below title shows "by {author} · {year}" + a 5-star rating row (`StarRating` widget). Score is mapped 0-10 → 0-5 stars; partial fifth star supported via clipped overlay (no half-star glyph required). Tier color carries through.
   - **PersonCard:** image is circular (avatar style); tagline in italic.
   - **GenericCard:** square image, no extras.
 - **Reveal animation per card:**
@@ -285,6 +285,7 @@ lib/
 │   │           ├── rank_numeral.dart       # Fraunces display, tier shader mask
 │   │           ├── tier_badge.dart         # GOLD/SILVER/BRONZE pill
 │   │           ├── score_bar.dart          # 4px animated fill
+│   │           ├── star_rating.dart        # 5-star row (BookCard only)
 │   │           ├── card_skeleton.dart      # shimmer placeholder
 │   │           ├── place_map_strip.dart    # 40pt OSM mini-map for PlaceItem
 │   │           ├── error_panel.dart        # illustrated panel per AppError variant
