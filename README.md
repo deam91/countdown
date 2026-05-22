@@ -256,6 +256,28 @@ make test    # or: fvm flutter test
 
 ---
 
+## Performance — what I'd fix next
+
+### Rebuilds
+
+- The ranking screen watches the whole controller, so every streaming tick rebuilds the world. Narrow it with `ref.watch(provider.select((s) => s.runtimeType))` and pull the items read into a child `Consumer`.
+- The card list is a plain `ListView` with all ten children up front. Switch to `ListView.builder` and collapse `_buildSlots` into the item builder.
+- A few `item.when(...)` calls in `ranking_screen.dart` and `rank_card.dart` still allocate four closures each. Replace with sealed `switch` patterns. Same audit for `share_composition.dart`.
+
+### Paint
+
+- Three `BackdropFilter(sigma 18)`s rasterize on every frame. Drop sigma to 12 and wrap the scrollable body in a `RepaintBoundary` so the snapshot is reused while the list isn't dirty.
+- `RevealAnimator` runs an `ImageFiltered` Gaussian blur on every card for the reveal. Skip the blur stage for ranks 4-10 (their 280ms window can't show it anyway); keep it for top-3.
+- Wrap the `child` passed into `AnimatedBuilder` in `reveal_animator.dart` and `rank_one_reveal.dart` with a `RepaintBoundary`.
+
+### Allocations
+
+- `AppTypography.X` are `static TextStyle get`s that rebuild via `GoogleFonts.X(...)` on every access. Change to `static final TextStyle X = ...` so each style is built once.
+- Pre-compute the `.copyWith(color: ...)` variants used across the ranking screen, search screen, rank card, and detail screen as named statics on `AppTypography`.
+- `SearchScreen._hintQueries` is a getter that runs `_examples.map(...).toList()` on every build of the rotating hint. Make it `static final`.
+
+---
+
 ## Stretch / future
 
 - Voice input (`speech_to_text` is already in `pubspec.yaml`; mic
