@@ -71,12 +71,14 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: Spacing.sp4),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: Spacing.sp1,
             children: [
               const SizedBox(height: Spacing.sp8),
               Text(
                 'What do you want ranked?',
                 style: AppTypography.headlineL,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: Spacing.sp6),
               _QueryInput(
@@ -85,13 +87,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 onSubmitted: _submit,
               ),
               const SizedBox(height: Spacing.sp6),
-              _ExampleChips(
+              _Chips(
                 examples: SearchScreen._examples,
                 onTap: _onChipTapped,
               ),
               const Spacer(),
               const _Footer(),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + Spacing.sp3),
+              SizedBox(
+                height: MediaQuery.of(context).padding.bottom + Spacing.sp3,
+              ),
             ],
           ),
         ),
@@ -357,17 +361,13 @@ class _MicButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = disabled
         ? ColorTokens.surfaceOutline
-        : (listening
-            ? ColorTokens.brandPrimary
-            : ColorTokens.textTertiary);
+        : (listening ? ColorTokens.brandPrimary : ColorTokens.textTertiary);
 
     return Semantics(
       button: true,
       label: disabled
           ? 'Voice input unavailable'
-          : (listening
-              ? 'Listening — release to stop'
-              : 'Hold to speak'),
+          : (listening ? 'Listening — release to stop' : 'Hold to speak'),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: disabled ? null : (_) => unawaited(onHoldStart()),
@@ -464,8 +464,8 @@ class _RotatingHintState extends State<_RotatingHint> {
 ///
 /// Computes per-chip width from the available column width so the
 /// chips lay out as an even 3×2 grid regardless of label length.
-class _ExampleChips extends StatelessWidget {
-  const _ExampleChips({required this.examples, required this.onTap});
+class _Chips extends StatelessWidget {
+  const _Chips({required this.examples, required this.onTap});
 
   final List<({String label, String query})> examples;
   final ValueChanged<String> onTap;
@@ -475,18 +475,15 @@ class _ExampleChips extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gap = Spacing.sp2;
-        final chipWidth = (constraints.maxWidth - gap * 2) / 3;
         return Wrap(
+          alignment: WrapAlignment.center,
           spacing: gap,
           runSpacing: gap,
           children: [
             for (final e in examples)
-              SizedBox(
-                width: chipWidth,
-                child: _Chip(
-                  label: e.label,
-                  onTap: () => onTap(e.query),
-                ),
+              _Chip(
+                label: e.label,
+                onTap: () => onTap(e.query),
               ),
           ],
         );
@@ -509,17 +506,25 @@ class _Chip extends StatelessWidget {
       child: InkWell(
         borderRadius: Radii.pillRadius,
         onTap: onTap,
-        child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: Spacing.sp3),
+        child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: Radii.pillRadius,
             border: Border.all(color: ColorTokens.surfaceOutline50),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: AppTypography.labelL.copyWith(color: ColorTokens.textSecondary),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.sp3,
+              vertical: Spacing.sp2,
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTypography.labelL.copyWith(
+                color: ColorTokens.textSecondary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ),
@@ -538,7 +543,9 @@ class _Footer extends StatelessWidget {
         width: double.infinity,
         child: Text(
           'Powered by GPT-4o-mini · Images by Wikipedia',
-          style: AppTypography.caption.copyWith(color: ColorTokens.textTertiary),
+          style: AppTypography.caption.copyWith(
+            color: ColorTokens.textTertiary,
+          ),
           textAlign: TextAlign.center,
         ),
       ),
