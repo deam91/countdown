@@ -189,6 +189,10 @@ class _QueryInputState extends State<_QueryInput> {
 
     unawaited(HapticFeedback.lightImpact());
     widget.focusNode.unfocus();
+    // Clear any prior query so the user sees a fresh field as they
+    // start talking — recognition results otherwise visually replace
+    // the old text on first onResult, which reads as a brief flicker.
+    widget.controller.clear();
     setState(() => _listening = true);
 
     unawaited(
