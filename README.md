@@ -6,7 +6,7 @@ silver, and bronze treatments on the podium, real images pulled from
 Wikipedia for each item, a confetti burst that fires when #1 enters the
 viewport.
 
-> Labhouse Flutter Technical Test — **Option B**. iOS, ~10 hours total
+> Labhouse Flutter Technical Test — **Option B**. iOS, **7h 30min** total
 > across the dev session. See the **[Decisions & tradeoffs](#decisions--tradeoffs)**
 > section below for the engineering substance.
 
@@ -271,10 +271,12 @@ make test    # or: fvm flutter test
 
 ## Submission deliverables
 
-- Repo: this one
-- Compile target: **iOS**
-- Time spent: see commit history (`git log --oneline`)
-- Screen recording: see `demo.mp4` in the repo root
+| Item | Value |
+|---|---|
+| Repository | https://github.com/deam91/countdown (public) |
+| Compile target | **iOS** (Flutter 3.44.0 via FVM — see [Quickstart](#quickstart)) |
+| Time spent | **7h 30min** |
+| Screen recording | Add `demo.mp4` to the repo root, or link a hosted video in the submission email |
 
 ---
 
