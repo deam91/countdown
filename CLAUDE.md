@@ -28,6 +28,7 @@ A Flutter iOS app that turns "give me the top N…" questions into a cinematic s
 - **Share:** `screenshot` + `share_plus`.
 - **External links** (Detail screen): `url_launcher` ^6.3 — Maps / Google / Wikipedia chips.
 - **Confetti:** `confetti` (the #1 reveal burst).
+- **Voice input:** `speech_to_text` ^7.4 — press-and-hold mic on Search; partial results stream into the text field. iOS Speech framework. Mic + speech permissions are in `Info.plist`. Engine is lazy-initialized on first press, not at app launch.
 - **Tests:** `flutter_test`, `mocktail`, **`alchemist`** (goldens — replaces stale `golden_toolkit`).
 - **Lints:** **`very_good_analysis`**.
 

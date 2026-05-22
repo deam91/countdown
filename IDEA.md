@@ -122,7 +122,7 @@ Scale (semantic):
 - Below it: a large rounded glass input (radius 28, height 56, frosted), with:
   - left-aligned `Search` icon
   - placeholder rotates every 3s through 6 example queries with a smooth top-out / bottom-in animation
-  - right-aligned mic icon (stretch feature; fades out gracefully if speech permission denied)
+  - right-aligned **press-and-hold mic icon** wired to `speech_to_text`: user holds to talk, releases to stop. Partial recognition results stream into the text field in real time. While listening the input border + mic icon glow brand-primary, the mic scales up 1.18×, and the keyboard is dismissed. First press lazy-initializes the engine (so we don't request mic + speech permissions on app launch); if permission is denied or the engine reports a permanent error the mic dims to `surface.outline` and stops accepting input.
 - Below the input: 6 example query chips in two rows, tappable to autofill (curated mix: "Top 10 ramen in Tokyo", "Best entrepreneurship books", "Most underrated horror films", "Greatest tennis players of all time", "Top sci-fi novels of the 2020s", "Best beaches in Portugal").
 - Bottom: small footer "Powered by GPT-4o-mini · Images by Unsplash."
 - Submitting (enter key or send button) triggers a **shared axis transition** to the Ranking screen.

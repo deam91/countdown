@@ -8,6 +8,7 @@ import 'package:countdown/features/ranking/presentation/ranking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 /// The app's landing screen. User types (or taps a chip) → pushes
 /// [RankingScreen] with the query.
@@ -99,8 +100,13 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-/// Glass-frosted text input with rotating placeholder.
-class _QueryInput extends StatelessWidget {
+/// Glass-frosted text input with rotating placeholder + voice input.
+///
+/// Stateful because the mic owns a [SpeechToText] instance that needs
+/// `initialize()` on first interaction and `stop()` on dispose. The
+/// text controller + focus node remain owned by the parent so the
+/// example chips and rotating hint can read/write them.
+class _QueryInput extends StatefulWidget {
   const _QueryInput({
     required this.controller,
     required this.focusNode,
@@ -112,13 +118,116 @@ class _QueryInput extends StatelessWidget {
   final ValueChanged<String> onSubmitted;
 
   @override
+  State<_QueryInput> createState() => _QueryInputState();
+}
+
+class _QueryInputState extends State<_QueryInput> {
+  final SpeechToText _speech = SpeechToText();
+
+  /// True once `_speech.initialize()` has been awaited successfully.
+  /// Lazy-initialized on first mic press so we don't request mic +
+  /// speech permissions on app launch.
+  bool _speechReady = false;
+  bool _listening = false;
+  bool _speechUnavailable = false;
+
+  /// True while the user's finger is on the mic button. Used to bail
+  /// out of starting a listen session if the press was released
+  /// before `initialize()` returned.
+  bool _pressActive = false;
+
+  @override
+  void dispose() {
+    // Best-effort: cancel any in-flight listen session. Don't await on
+    // dispose to keep the close path synchronous.
+    unawaited(_speech.cancel());
+    super.dispose();
+  }
+
+  /// Called when the user puts a finger down on the mic. Initializes
+  /// the engine on first use, then opens a listen session that lasts
+  /// as long as the press. Partial results stream into the text field
+  /// while the user is talking.
+  Future<void> _onMicHoldStart() async {
+    if (_speechUnavailable) return;
+    _pressActive = true;
+
+    if (!_speechReady) {
+      final available = await _speech.initialize(
+        onError: (e) {
+          if (e.permanent && mounted) {
+            setState(() {
+              _speechUnavailable = true;
+              _listening = false;
+            });
+          }
+        },
+        onStatus: (status) {
+          // 'done' / 'notListening' both mean the system has stopped
+          // capturing — flip our local state back so the UI matches.
+          if ((status == 'done' || status == 'notListening') && mounted) {
+            setState(() => _listening = false);
+          }
+        },
+      );
+      if (!mounted) return;
+      if (!available) {
+        setState(() => _speechUnavailable = true);
+        return;
+      }
+      _speechReady = true;
+    }
+
+    // The user may have released the button while initialize() was
+    // pending. Don't open a listen session in that case.
+    if (!_pressActive || !mounted) return;
+
+    unawaited(HapticFeedback.lightImpact());
+    widget.focusNode.unfocus();
+    setState(() => _listening = true);
+
+    unawaited(
+      _speech.listen(
+        onResult: (result) {
+          if (!mounted) return;
+          widget.controller.text = result.recognizedWords;
+          widget.controller.selection = TextSelection.collapsed(
+            offset: widget.controller.text.length,
+          );
+        },
+        listenOptions: SpeechListenOptions(
+          cancelOnError: true,
+          // Long ceiling — the user controls actual duration with the
+          // press. pauseFor matches so we don't auto-stop on small
+          // breath pauses while the user is still holding.
+          listenFor: const Duration(seconds: 60),
+          pauseFor: const Duration(seconds: 60),
+        ),
+      ),
+    );
+  }
+
+  /// Called on finger lift or pointer cancel. Stops the session if one
+  /// is open and clears the press latch.
+  Future<void> _onMicHoldEnd() async {
+    _pressActive = false;
+    if (!_listening) return;
+    await _speech.stop();
+    if (mounted) setState(() => _listening = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 56,
       decoration: BoxDecoration(
         color: ColorTokens.surfaceGlass,
         borderRadius: Radii.inputRadius,
-        border: Border.all(color: ColorTokens.surfaceOutline50),
+        border: Border.all(
+          color: _listening
+              ? ColorTokens.brandPrimary
+              : ColorTokens.surfaceOutline50,
+        ),
       ),
       child: Row(
         children: [
@@ -135,7 +244,7 @@ class _QueryInput extends StatelessWidget {
               children: [
                 // Animated placeholder shown when the input is empty.
                 ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: controller,
+                  valueListenable: widget.controller,
                   builder: (_, value, _) {
                     if (value.text.isNotEmpty) return const SizedBox.shrink();
                     return IgnorePointer(
@@ -144,12 +253,12 @@ class _QueryInput extends StatelessWidget {
                   },
                 ),
                 TextField(
-                  controller: controller,
-                  focusNode: focusNode,
+                  controller: widget.controller,
+                  focusNode: widget.focusNode,
                   style: AppTypography.bodyL,
                   cursorColor: ColorTokens.brandSecondary,
                   textInputAction: TextInputAction.search,
-                  onSubmitted: onSubmitted,
+                  onSubmitted: widget.onSubmitted,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isCollapsed: true,
@@ -162,7 +271,7 @@ class _QueryInput extends StatelessWidget {
           // Clear (×) only appears when there's text. Refocuses the
           // field after clearing so the user can keep typing.
           ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller,
+            valueListenable: widget.controller,
             builder: (_, value, _) {
               if (value.text.isEmpty) return const SizedBox.shrink();
               return IconButton(
@@ -174,24 +283,78 @@ class _QueryInput extends StatelessWidget {
                 ),
                 tooltip: 'Clear',
                 onPressed: () {
-                  controller.clear();
-                  focusNode.requestFocus();
+                  widget.controller.clear();
+                  widget.focusNode.requestFocus();
                 },
               );
             },
           ),
-          // Mic affordance — wired up when speech_to_text lands (stretch).
-          const IconButton(
-            onPressed: null,
-            icon: Icon(
-              LucideIcons.mic,
-              size: 24,
-              color: ColorTokens.textTertiary,
-            ),
-            tooltip: 'Voice input (coming soon)',
+          _MicButton(
+            listening: _listening,
+            disabled: _speechUnavailable,
+            onHoldStart: _onMicHoldStart,
+            onHoldEnd: _onMicHoldEnd,
           ),
           const SizedBox(width: Spacing.sp1),
         ],
+      ),
+    );
+  }
+}
+
+/// Press-and-hold mic affordance.
+///
+/// Listening starts on pointer-down and stops on pointer-up / cancel,
+/// so the user holds to talk and releases to send recognition to the
+/// text field. Becomes brand-primary + scales up while listening, and
+/// renders dimmed/disabled when speech is unavailable (denied
+/// permission or unsupported platform).
+class _MicButton extends StatelessWidget {
+  const _MicButton({
+    required this.listening,
+    required this.disabled,
+    required this.onHoldStart,
+    required this.onHoldEnd,
+  });
+
+  final bool listening;
+  final bool disabled;
+  final Future<void> Function() onHoldStart;
+  final Future<void> Function() onHoldEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = disabled
+        ? ColorTokens.surfaceOutline
+        : (listening
+            ? ColorTokens.brandPrimary
+            : ColorTokens.textTertiary);
+
+    return Semantics(
+      button: true,
+      label: disabled
+          ? 'Voice input unavailable'
+          : (listening
+              ? 'Listening — release to stop'
+              : 'Hold to speak'),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: disabled ? null : (_) => unawaited(onHoldStart()),
+        onTapUp: disabled ? null : (_) => unawaited(onHoldEnd()),
+        onTapCancel: disabled ? null : () => unawaited(onHoldEnd()),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: AnimatedScale(
+            scale: listening ? 1.18 : 1,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOutCubic,
+            child: Icon(
+              listening ? LucideIcons.micVocal : LucideIcons.mic,
+              size: 24,
+              color: color,
+            ),
+          ),
+        ),
       ),
     );
   }
