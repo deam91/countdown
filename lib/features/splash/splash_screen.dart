@@ -4,6 +4,7 @@ import 'package:countdown/core/theme/color_tokens.dart';
 import 'package:countdown/core/theme/typography.dart';
 import 'package:countdown/features/search/search_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 /// In-Flutter brand splash. Shown briefly after the native iOS launch
 /// image, then fades into the Search screen. The Fraunces wordmark
@@ -26,6 +27,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _timer = Timer(SplashScreen._hold, _goHome);
+    // Pre-warm voice input while the splash is showing. Triggers the
+    // iOS Microphone + Speech-Recognition permission popups during the
+    // 5s hold, so by the time the user reaches Search and presses the
+    // mic, the engine is already initialized and recognition starts
+    // instantly. Errors are swallowed — speech is optional; users can
+    // always type.
+    unawaited(SpeechToText().initialize());
   }
 
   void _goHome() {

@@ -112,7 +112,8 @@ Scale (semantic):
 
 - Full-screen `surface.base`.
 - Centered Fraunces logo wordmark "Countdown" with a single purple dot after the "n" pulsing at 1.2s loop.
-- Auto-routes to Search after 400ms (or whenever first frame is ready — whichever comes later).
+- Auto-routes to Search after a **5s hold** (two full pulse loops) via a fade-through `PageRouteBuilder`. No back navigation.
+- **Pre-warms voice input.** Calls `SpeechToText().initialize()` during `initState`, which fires the iOS Microphone + Speech-Recognition permission popups while the splash is still on screen. By the time the user reaches Search, the engine is initialized and pressing the mic begins recognition immediately — no in-context permission interruption. Errors are swallowed; the app still works without speech, the user just types.
 
 ### 3.2 Search screen
 
