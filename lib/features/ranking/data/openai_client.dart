@@ -23,8 +23,8 @@ class CountdownOpenAIClient implements RankingClient {
   /// Image URLs are added downstream by WikipediaImageLookup.
   CountdownOpenAIClient({
     required String apiKey,
-    this._model = 'gpt-4o-mini',
-  })  : _client = OpenAIClient.withApiKey(apiKey);
+    this._model = 'gpt-5.4-nano',
+  }) : _client = OpenAIClient.withApiKey(apiKey);
 
   final OpenAIClient _client;
   final String _model;
@@ -121,7 +121,11 @@ class CountdownOpenAIClient implements RankingClient {
         PlaceItem(:final rank, :final imageUrl) => (rank, 'place', imageUrl),
         BookItem(:final rank, :final imageUrl) => (rank, 'book', imageUrl),
         PersonItem(:final rank, :final imageUrl) => (rank, 'person', imageUrl),
-        GenericItem(:final rank, :final imageUrl) => (rank, 'generic', imageUrl),
+        GenericItem(:final rank, :final imageUrl) => (
+          rank,
+          'generic',
+          imageUrl,
+        ),
       };
       debugPrint(
         '[openai]   #${rank.toString().padLeft(2)} ${kind.padRight(8)} → ${url ?? '(null)'}',
