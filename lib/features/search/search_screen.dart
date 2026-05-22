@@ -426,6 +426,17 @@ class _RotatingHintState extends State<_RotatingHint> {
       duration: const Duration(milliseconds: 320),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
+      // Default layoutBuilder uses Alignment.center, which makes the
+      // hint visually jump to the middle of the input while two hints
+      // overlap during the cross-fade. Anchor to centerLeft so the
+      // text stays flush with the search icon.
+      layoutBuilder: (currentChild, previousChildren) => Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          ...previousChildren,
+          ?currentChild,
+        ],
+      ),
       transitionBuilder: (child, animation) {
         return ClipRect(
           child: SlideTransition(
@@ -440,6 +451,7 @@ class _RotatingHintState extends State<_RotatingHint> {
       child: Text(
         widget.hints[_index].trim(),
         key: ValueKey(_index),
+        textAlign: TextAlign.left,
         style: AppTypography.bodyL.copyWith(color: ColorTokens.textTertiary),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
