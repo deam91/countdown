@@ -87,13 +87,28 @@ class DetailScreen extends StatelessWidget {
                 const SizedBox(height: Spacing.sp5),
                 Text(_details, style: AppTypography.bodyL),
                 const SizedBox(height: Spacing.sp6),
-                if (item case PlaceItem(:final address, :final lat, :final lng)) ...[
-                  Text('Location', style: AppTypography.titleM),
-                  const SizedBox(height: Spacing.sp2),
-                  Text(address, style: AppTypography.bodyM),
-                  const SizedBox(height: Spacing.sp3),
-                  _FullMap(lat: lat, lng: lng),
-                  const SizedBox(height: Spacing.sp6),
+                if (item case PlaceItem(
+                  :final address,
+                  :final lat,
+                  :final lng,
+                )) ...[
+                  // Render the Location block only when we have at
+                  // least one piece of place data. Mountains/oceans
+                  // may have coords but no address; small spots may
+                  // have an address but no resolved coords. We don't
+                  // want a header on an empty section.
+                  if ((address != null && address.isNotEmpty) ||
+                      (lat != null && lng != null)) ...[
+                    Text('Location', style: AppTypography.titleM),
+                    const SizedBox(height: Spacing.sp2),
+                    if (address != null && address.isNotEmpty)
+                      Text(address, style: AppTypography.bodyM),
+                    if (lat != null && lng != null) ...[
+                      const SizedBox(height: Spacing.sp3),
+                      _FullMap(lat: lat, lng: lng),
+                    ],
+                    const SizedBox(height: Spacing.sp6),
+                  ],
                 ],
                 _ExternalLinkChips(item: item, title: _title),
                 SizedBox(height: MediaQuery.of(context).padding.bottom + Spacing.sp6),
@@ -284,7 +299,10 @@ class _ExternalLinkChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final chips = <_LinkChip>[];
 
-    if (item case PlaceItem(:final lat, :final lng)) {
+    // Only offer "Open in Maps" when we actually have coordinates to
+    // drop a pin on. Without lat/lng the URL would query the empty
+    // string and the Maps app would land on the user's current loc.
+    if (item case PlaceItem(:final lat?, :final lng?)) {
       chips.add(_LinkChip(
         label: 'Open in Maps',
         icon: LucideIcons.map,

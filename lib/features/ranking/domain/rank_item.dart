@@ -13,9 +13,15 @@ sealed class RankItem with _$RankItem {
     required String whyItRanks,
     required String details,
     required double score,
-    required String address,
-    required double lat,
-    required double lng,
+    // Natural features (mountains, oceans, regions) don't always have
+    // a meaningful street address — leave null in that case. The card
+    // skips the address row when it's null/empty.
+    String? address,
+    // Coords are nullable so the parser tolerates the model omitting
+    // them. The Wikipedia enrichment step normally backfills these on
+    // real places; the map strip only renders when both are non-null.
+    double? lat,
+    double? lng,
     String? imageUrl,
   }) = PlaceItem;
 

@@ -136,6 +136,11 @@ class _QueryInputState extends State<_QueryInput> {
   /// before `initialize()` returned.
   bool _pressActive = false;
 
+  /// Set when the user releases the mic. The next `onResult` with
+  /// `finalResult == true` will auto-submit the query — so the user
+  /// holds, talks, releases, and the search fires on its own.
+  bool _submitOnFinal = false;
+
   @override
   void dispose() {
     // Best-effort: cancel any in-flight listen session. Don't await on
@@ -194,9 +199,28 @@ class _QueryInputState extends State<_QueryInput> {
           widget.controller.selection = TextSelection.collapsed(
             offset: widget.controller.text.length,
           );
+          // Auto-submit once the engine finalizes recognition *and*
+          // the user has released the mic. Partial results stream in
+          // first; the final one (typically punctuation-corrected)
+          // arrives after `stop()`.
+          if (result.finalResult && _submitOnFinal) {
+            _submitOnFinal = false;
+            final text = widget.controller.text.trim();
+            if (text.isNotEmpty) {
+              widget.onSubmitted(text);
+            }
+          }
         },
         listenOptions: SpeechListenOptions(
           cancelOnError: true,
+          // 44.1 kHz matches what the Mac mic (and most hardware) hands
+          // the iOS Simulator. Without this, AVAudioEngine retries 5x
+          // with "Format mismatch: input hw 44100 Hz, client format
+          // 48000 Hz" then bails with kAFAssistantErrorDomain 1101.
+          // 0 (default) lets Speech pick — which is 48 kHz on iOS, the
+          // mismatch path. Real devices auto-resample so this matters
+          // most for the demo running in a simulator.
+          sampleRate: 44100,
           // Long ceiling — the user controls actual duration with the
           // press. pauseFor matches so we don't auto-stop on small
           // breath pauses while the user is still holding.
@@ -208,10 +232,13 @@ class _QueryInputState extends State<_QueryInput> {
   }
 
   /// Called on finger lift or pointer cancel. Stops the session if one
-  /// is open and clears the press latch.
+  /// is open and clears the press latch. Flags the next final result
+  /// for auto-submit so the user doesn't have to tap Enter after
+  /// dictating their query.
   Future<void> _onMicHoldEnd() async {
     _pressActive = false;
     if (!_listening) return;
+    _submitOnFinal = true;
     await _speech.stop();
     if (mounted) setState(() => _listening = false);
   }

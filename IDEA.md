@@ -319,9 +319,18 @@ sealed class RankItem with _$RankItem {
     required String details,
     required double score,                  // 0-10
     String? imageUrl,
-    required String address,
-    required double lat,
-    required double lng,
+    // All three of these are nullable. Natural features (mountains,
+    // oceans, regions) may not have a meaningful street address; tiny
+    // unindexed spots may not have resolved coordinates. The card
+    // skips the address row when address is null/empty, the map strip
+    // only renders when both lat AND lng are non-null, and the Detail
+    // screen's Location section collapses entirely when none of the
+    // three are available. The OpenAI prompt instructs the model to
+    // provide "Region, Country" as a fallback address and lat/lng
+    // whenever the place can be pinpointed — nulls should be rare.
+    String? address,
+    double? lat,
+    double? lng,
   }) = PlaceItem;
 
   const factory RankItem.book({

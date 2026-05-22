@@ -205,7 +205,7 @@ class _CardBody extends StatelessWidget {
         ),
         const SizedBox(height: Spacing.sp1),
         _SubLine(item: item),
-        if (item case PlaceItem(:final lat, :final lng)) ...[
+        if (item case PlaceItem(:final lat?, :final lng?)) ...[
           const SizedBox(height: Spacing.sp2),
           PlaceMapStrip(lat: lat, lng: lng),
         ],
@@ -256,7 +256,7 @@ class _SubLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (item) {
-      PlaceItem(:final address) => Row(
+      PlaceItem(:final address?) when address.isNotEmpty => Row(
           children: [
             const Icon(
               LucideIcons.mapPin,
@@ -274,6 +274,9 @@ class _SubLine extends StatelessWidget {
             ),
           ],
         ),
+      // Natural features sometimes have no meaningful address —
+      // collapse the row in that case.
+      PlaceItem() => const SizedBox.shrink(),
       BookItem(:final author, :final year) => Text(
           year != null ? 'by $author · $year' : 'by $author',
           style: AppTypography.bodyM,
