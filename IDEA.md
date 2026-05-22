@@ -181,8 +181,11 @@ Scale (semantic):
 
 ![Share mockup](./design/screenshots/06-share.png)
 
-- Composes a 9:16 image: header with query, all 10 cards stacked at small scale, "Countdown" wordmark watermark at the bottom-right with a subtle purple gradient.
-- Preview is rendered to a `RepaintBoundary` then captured via the `screenshot` package and handed to `share_plus`.
+- Tapping **Share** on the done state captures a dedicated 9:16 composition rendered **off-screen** (not a screenshot of the visible cards) and hands the PNG to `share_plus`.
+- Composition lives in `lib/features/share/share_composition.dart` — laid out at logical **360×640** with `ShareComposition.logicalWidth/Height`, then captured by `ScreenshotController.captureFromWidget(... pixelRatio: 3)` for a **1080×1920** final image (Instagram-Stories / TikTok size).
+- Layout: brand wordmark "Countdown ·" + query (italic) header, all 10 mini-rows stacked, top-3 retaining tier gradient strip + numeral color, "made with Countdown ·" footer watermark, subtle purple radial gradient background.
+- `ShareService.shareRanking({context, ranking})` orchestrates capture → temp PNG → system share sheet. `shareScreenshot(bytes, query:)` remains as a lower-level helper.
+- The on-screen ranking tree is no longer wrapped in a `Screenshot` widget (the off-screen path doesn't need it).
 - Light haptic on capture.
 
 ### 3.6 Caching (invisible to the user)
@@ -296,7 +299,8 @@ lib/
 │   ├── detail/
 │   │   └── detail_screen.dart              # hero header + full map + external links
 │   └── share/
-│       └── share_service.dart              # screenshot + share_plus iOS sheet
+│       ├── share_composition.dart          # 9:16 off-screen share image widget
+│       └── share_service.dart              # captureFromWidget + share_plus iOS sheet
 └── routing/                                # (reserved if scope grows)
 ```
 

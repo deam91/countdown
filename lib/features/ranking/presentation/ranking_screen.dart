@@ -19,7 +19,6 @@ import 'package:countdown/features/share/share_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:screenshot/screenshot.dart';
 
 /// The countdown reveal screen. Watches [rankingControllerProvider] and
 /// kicks off the request on first mount.
@@ -34,7 +33,6 @@ class RankingScreen extends ConsumerStatefulWidget {
 }
 
 class _RankingScreenState extends ConsumerState<RankingScreen> {
-  final ScreenshotController _screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -71,10 +69,13 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   }
 
   Future<void> _handleShare() async {
-    final bytes = await _screenshotController.capture(pixelRatio: 3);
-    if (!mounted || bytes == null) return;
+    final state = ref.read(rankingControllerProvider);
+    if (state is! RankingDone) return;
     try {
-      await ShareService.shareScreenshot(bytes, query: widget.query);
+      await ShareService.shareRanking(
+        context: context,
+        ranking: state.ranking,
+      );
     } on Object {
       // User canceled the share sheet, or a platform error fired.
       // Either way, no UI feedback needed — Share is a passive action.
@@ -107,31 +108,25 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
         shareEnabled: isDone,
         onShare: isDone ? _handleShare : null,
       ),
+      // The share image is built off-screen from a dedicated
+      // ShareComposition (see ShareService.shareRanking), so the body
+      // tree no longer needs to be wrapped in a Screenshot capture.
       body: Stack(
         children: [
-          // Screenshot wraps just the background + cards so the bottom
-          // bar isn't baked into the shared image.
-          Screenshot(
-            controller: _screenshotController,
-            child: Stack(
-              children: [
-                _RevealBackgroundGlow(active: isDone || _hasRankOne(items)),
-                ListView(
-                  controller: _scrollController,
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + kToolbarHeight,
-                    left: Spacing.sp4,
-                    right: Spacing.sp4,
-                    // Reserve room for the sticky _DoneBottomBar (~96pt incl. safe-area).
-                    bottom: MediaQuery.of(context).padding.bottom + 96 + Spacing.sp4,
-                  ),
-                  children: [
-                    StatusSubHeader(state: state, targetN: widget.n),
-                    ..._buildSlots(items, state),
-                  ],
-                ),
-              ],
+          _RevealBackgroundGlow(active: isDone || _hasRankOne(items)),
+          ListView(
+            controller: _scrollController,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + kToolbarHeight,
+              left: Spacing.sp4,
+              right: Spacing.sp4,
+              // Reserve room for the sticky _DoneBottomBar (~96pt incl. safe-area).
+              bottom: MediaQuery.of(context).padding.bottom + 96 + Spacing.sp4,
             ),
+            children: [
+              StatusSubHeader(state: state, targetN: widget.n),
+              ..._buildSlots(items, state),
+            ],
           ),
           if (isDone) _DoneBottomBar(onShare: _handleShare),
         ],
